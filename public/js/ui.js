@@ -244,7 +244,7 @@ function showWinOverlay(w) {
 }
 
 const WIN_STYLE = {
-  kuadra: { c1: '#8b5cf6', c2: '#a855f7', c3: '#7c3aed', icon: '◆', sub: '4 Cantos Completados' },
+  kuadra: { c1: '#8b5cf6', c2: '#a855f7', c3: '#7c3aed', icon: '◆', sub: '4 na Vertical' },
   kina:   { c1: '#10b981', c2: '#34d399', c3: '#059669', icon: '✦', sub: '5 Números em Linha' },
   keno:   { c1: '#f59e0b', c2: '#fbbf24', c3: '#f97316', icon: '🏆', sub: 'Cartela Completa!' },
 };

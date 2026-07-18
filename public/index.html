@@ -15,7 +15,7 @@
         <div id="winBanner" class="win-banner">
             <div id="winIcon" class="win-icon">◆</div>
             <div id="winTitle" class="win-title">KUADRA!</div>
-            <div id="winSub" class="win-sub">4 Cantos Completados</div>
+            <div id="winSub" class="win-sub">4 na Vertical</div>
             <div id="winValue" class="win-value">R$ 0</div>
             <div id="winWinners" class="win-winners"></div>
         </div>
@@ -35,6 +35,8 @@
             <span class="logo-text">BINGO VIP CLUB</span>
         </div>
         <div class="nav-actions">
+            <button class="btn-action btn-deposito" id="btnDeposito" onclick="abrirDeposito()"><span class="material-icons" style="color:#ffd700">account_balance_wallet</span><span class="dep-label">Depósito</span></button>
+            <button class="btn-action btn-saque" id="btnSaque" onclick="abrirSaque()"><span class="material-icons" style="color:#34d399">payments</span><span class="saque-label">Sacar</span></button>
             <button class="btn-action" id="btnSom" onclick="toggleSound()"><span class="material-icons" style="color:#ffd700">volume_up</span><span class="som-label">Som</span></button>
             <button class="btn-action" id="btnSair"><span class="material-icons ic-sair">exit_to_app</span>Sair</button>
         </div>
@@ -177,6 +179,10 @@
     <script src="/js/cards.js"></script>
     <script src="/js/socket-client.js"></script>
     <script src="/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="/js/deposito.js"></script>
+    <script src="/js/saque.js"></script>
+    <script src="/js/editor.js"></script>
 
     <!-- Modal de inspeção de código (clique no painel) -->
     <div class="src-modal" id="srcModal">
@@ -192,5 +198,51 @@
             <pre class="src-code" id="srcCode"></pre>
         </div>
     </div>
-</body>
+
+    <!-- Modal de Saque -->
+    <div class="dep-modal" id="saqueModal">
+        <div class="dep-box">
+            <div class="dep-head">
+                <span class="dep-title">🏦 Solicitar Saque</span>
+                <button class="dep-close" onclick="fecharSaque()">✕</button>
+            </div>
+            <div class="dep-balance">Saldo disponível: <b id="saqueSaldo">R$ 0,00</b></div>
+            <div class="dep-custom" style="margin-bottom:10px">
+                <span>R$</span>
+                <input id="saqueValor" type="number" min="1" placeholder="Valor do saque" inputmode="numeric">
+            </div>
+            <div class="dep-custom" style="margin-bottom:14px">
+                <span style="font-size:18px">🔑</span>
+                <input id="saquePix" type="text" placeholder="Sua chave Pix" style="flex:1;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,0.14);background:rgba(0,0,0,0.3);color:#fff;font-size:14px;outline:none">
+            </div>
+            <button class="dep-confirm" id="saqueConfirm" style="background:linear-gradient(145deg,#22d3ee,#8b5cff)">Enviar pedido</button>
+            <div class="dep-msg" id="saqueMsg"></div>
+            <div class="dep-hint">O saque é analisado pelo administrador e pago via Pix. Informe a chave cadastrada no seu perfil.</div>
+        </div>
+    </div>
+        <div class="dep-box">
+            <div class="dep-head">
+                <span class="dep-title">💰 Recarregar Saldo</span>
+                <button class="dep-close" id="depClose" onclick="fecharDeposito()">✕</button>
+            </div>
+            <div class="dep-balance">Saldo atual: <b id="depSaldoAtual">R$ 0,00</b></div>
+            <div class="dep-quick">
+                <button class="dep-q" data-v="10">R$ 10</button>
+                <button class="dep-q" data-v="30">R$ 30</button>
+                <button class="dep-q" data-v="50">R$ 50</button>
+                <button class="dep-q" data-v="100">R$ 100</button>
+                <button class="dep-q" data-v="200">R$ 200</button>
+            </div>
+            <div class="dep-custom">
+                <span>R$</span>
+                <input id="depValor" type="number" min="1" placeholder="Outro valor" inputmode="numeric">
+            </div>
+            <button class="dep-confirm" id="depConfirm">Confirmar Depósito</button>
+            <div class="dep-msg" id="depMsg"></div>
+            <div class="dep-hint">Pagamento via Pix. Em breve a integração automática — sua recarga será creditada pelo administrador.</div>
+        </div>
+    </div>
+
+    </body>
 </html>
+

@@ -7,9 +7,9 @@ const PRIZES = { kuadra: 20, kina: 30, keno: 100, acumulado: 1000 };
 const ACUMULADO_BALLS = 35; // fecha a cartela (Keno) até essa bola para ganhar o acumulado
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(16).toString('hex');
 
-// Demo: conta de teste pronta (sobe com BOTS=1 / demo)
-const DEMO_CPF = '00000000000';
-const DEMO_SENHA = 'demo123';
+// Contas administrativas (separadas por vírgula). Defina no .env como ADMIN_CPF=123...
+const ADMIN_CPF = (process.env.ADMIN_CPF || '')
+  .split(',').map((c) => c.replace(/\D/g, '')).filter(Boolean);
 
 module.exports = {
   DRAW_INTERVAL,
@@ -17,6 +17,5 @@ module.exports = {
   PRIZES,
   ACUMULADO_BALLS,
   SESSION_SECRET,
-  DEMO_CPF,
-  DEMO_SENHA,
+  ADMIN_CPF,
 };

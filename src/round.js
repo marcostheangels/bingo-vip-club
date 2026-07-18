@@ -18,6 +18,7 @@ function pagar(owner, valor) {
   const u = db.users.get(owner);
   if (u) {
     u.balance += valor;
+    db.markDirty(owner);
     db.saveUsers();
     emitSaldoParaUser(owner);
   }
@@ -96,6 +97,32 @@ function sortearBolaLoop() {
   if (core.state.winners.keno || core.state.drawnBalls.length >= 90) finalizarRodada();
 }
 
+// Retoma uma rodada não-finalizada salva no banco (caso o servidor tenha caído).
+// Não retoma se a rodada já estava encerrada.
+async function restaurarRodada() {
+  const snap = await db.loadRound();
+  if (!snap) return false;
+  if (snap.state.status === 'finished') { await db.clearRound(); return false; }
+  Object.assign(core.state, snap.state);
+  core.cardSeq = snap.cardSeq;
+  core.sorteioSeq = snap.sorteioSeq;
+  core.roundCards.clear();
+  for (const c of snap.cards) core.roundCards.set(c.id, { id: c.id, owner: c.owner, card: c.card });
+  // Se estava em sorteio, retoma o timer; se em intermission, agenda início.
+  if (core.state.status === 'running') {
+    if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+    core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+    console.log('[round] rodada retomada (running) bolas:', core.state.drawnBalls.length);
+  } else if (core.state.status === 'intermission') {
+    const restante = Math.max(1000, (core.state.startsAt || 0) - Date.now());
+    setTimeout(iniciarSorteio, restante);
+    console.log('[round] rodada retomada (intermission)');
+  }
+  broadcastState();
+  emitMyCardsParaTodos();
+  return true;
+}
+
 function iniciarSorteio() {
   core.iniciarSorteio();
   broadcastState();
@@ -106,12 +133,14 @@ function finalizarRodada() {
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   core.finalizarRodada();
   broadcastState();
+  db.clearRound();
   setTimeout(comecarRodada, 6000);
 }
 
 function comecarRodada() {
   core.novaRodada();
   broadcastState();
+  db.clearRound();
   core.drawTimer = null;
   emitMyCardsParaTodos();
   if (process.env.BOTS === '1') bots.botComprarCartelas(core.roundCards, db.users);
@@ -196,6 +225,20 @@ function publicState() {
 
 function broadcastState() {
   io.emit('state', publicState());
+  saveSnapshot();
+}
+
+// Persiste o estado da rodada em andamento (cartelas + bolas + vencedores)
+// para retomar caso o servidor caia.
+function saveSnapshot() {
+  const cards = [];
+  for (const c of core.roundCards.values()) cards.push({ id: c.id, owner: c.owner, card: c.card });
+  db.saveRound({
+    state: core.state,
+    cards,
+    cardSeq: core.cardSeq,
+    sorteioSeq: core.sorteioSeq,
+  });
 }
 
 function cardsDoUser(owner) {
@@ -214,4 +257,5 @@ module.exports = {
   iniciarSorteio,
   finalizarRodada,
   sortearBolaLoop,
+  restaurarRodada,
 };

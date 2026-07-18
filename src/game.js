@@ -42,6 +42,14 @@ function generateBingoCard() {
     });
   }
 
+  // Validação de segurança: cada linha deve ter exatamente 5 números e o total 15.
+  let ok = true;
+  for (let row = 0; row < 3; row++) {
+    const cnt = card[row].filter((v) => v !== '').length;
+    if (cnt !== 5) ok = false;
+  }
+  if (!ok || cardNumbers(card).length !== 15) return generateBingoCard();
+
   return card;
 }
 
@@ -62,20 +70,32 @@ function rowMarks(card, row, drawnSet) {
   return card[row].reduce((c, v) => c + (v !== '' && drawnSet.has(Number(v)) ? 1 : 0), 0);
 }
 
+// Marcações por "linha vertical" da cartela exibida: cada uma das 3 colunas
+// verticais de 5 números (displayRows). Usado para Kuadra (4) e Kina (5).
+function verticalMarks(card, idx, drawnSet) {
+  const vrows = displayRows(card);
+  const col = vrows[idx];
+  return col.reduce((c, v) => c + (v !== '' && drawnSet.has(Number(v)) ? 1 : 0), 0);
+}
+
 // Avalia estado da cartela para todas as fases.
+// Kuadra = 4 num na mesma linha vertical (de 5), Kina = 5 na mesma linha vertical,
+// Keno = cartela cheia (15).
 function evaluateCard(card, drawnBalls) {
   const drawn = new Set(drawnBalls.map(Number));
+  const vrows = displayRows(card);
+  const verts = vrows.map((_, i) => verticalMarks(card, i, drawn));
   const rows = [0, 1, 2].map((r) => rowMarks(card, r, drawn));
   const total = rows.reduce((a, b) => a + b, 0);
 
-  const kuadraFalta = Math.max(0, Math.min(...rows.map((h) => 4 - h)));
-  const kinaFalta = Math.max(0, Math.min(...rows.map((h) => 5 - h)));
+  const kuadraFalta = Math.max(0, Math.min(...verts.map((h) => 4 - h)));
+  const kinaFalta = Math.max(0, Math.min(...verts.map((h) => 5 - h)));
   const kenoFalta = Math.max(0, 15 - total);
 
   return {
     marks: total,
-    kuadra: { done: rows.some((h) => h >= 4), falta: kuadraFalta },
-    kina: { done: rows.some((h) => h >= 5), falta: kinaFalta },
+    kuadra: { done: verts.some((h) => h >= 4), falta: kuadraFalta },
+    kina: { done: verts.some((h) => h >= 5), falta: kinaFalta },
     keno: { done: total >= 15, falta: kenoFalta },
   };
 }
@@ -97,16 +117,17 @@ function missingForPhase(card, drawnBalls, phase) {
       .sort((a, b) => a - b);
   }
   const alvo = phase === 'kuadra' ? 4 : 5;
-  // linha com mais marcacoes (mais perto de fechar)
-  let melhorLinha = 0;
+  // linha vertical (bloco de 5) com mais marcacoes (mais perto de fechar)
+  const vrows = displayRows(card);
+  let melhorIdx = 0;
   let melhorHits = -1;
-  for (let r = 0; r < 3; r++) {
-    const hits = rowMarks(card, r, drawn);
-    if (hits > melhorHits) { melhorHits = hits; melhorLinha = r; }
+  for (let i = 0; i < vrows.length; i++) {
+    const hits = verticalMarks(card, i, drawn);
+    if (hits > melhorHits) { melhorHits = hits; melhorIdx = i; }
   }
   // Quantidade que REALMENTE falta (deve bater com evaluateCard.falta).
   const faltaReal = Math.max(0, alvo - melhorHits);
-  const faltantes = card[melhorLinha]
+  const faltantes = vrows[melhorIdx]
     .filter((v) => v !== '' && !drawn.has(Number(v)))
     .map(Number)
     .sort((a, b) => a - b);

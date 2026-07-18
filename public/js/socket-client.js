@@ -42,8 +42,8 @@ socket.on('winner', (w) => {
   window.showWinOverlay(w);
   // Badge temporário no painel "Quem está perto"
   if (w.vencedores && w.vencedores.length) {
-    w.vencedores.forEach((v) => {
-      const row = document.querySelector(`#players-list .player-row[data-owner="${v.cpf}"]`);
+      w.vencedores.forEach((v) => {
+        const row = document.querySelector(`#players-list .player-row[data-owner="${v.owner}"]`);
       if (row) {
         const balls = row.querySelector('.pballs');
         if (balls) {

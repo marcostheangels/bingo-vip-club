@@ -13,17 +13,19 @@ function cardMarks(card, drawn) {
   return m;
 }
 
-// Marcações por linha (usado para Kuadra/Kina)
-function rowMarks(card, drawn) {
-  return card.map((row) => row.reduce((c, v) => c + (v !== '' && drawn.has(Number(v)) ? 1 : 0), 0));
+// Marcações por "linha vertical" exibida (cada bloco de 5 da displayRows)
+function verticalMarks(card, drawn) {
+  const disp = displayRows(card);
+  return disp.map((row) => row.reduce((c, v) => c + (v !== '' && drawn.has(Number(v)) ? 1 : 0), 0));
 }
 
-// Quantas bolas faltam para fechar a fase indicada nesta cartela
+// Quantas bolas faltam para fechar a fase indicada nesta cartela.
+// Kuadra = 4 num bloco vertical, Kina = 5 no mesmo bloco, Keno = cartela cheia.
 function faltaFase(card, drawn, fase) {
-  const rows = rowMarks(card, drawn);
-  if (fase === 'kuadra') return Math.max(0, Math.min(...rows.map((h) => 4 - h)));
-  if (fase === 'kina') return Math.max(0, Math.min(...rows.map((h) => 5 - h)));
-  return Math.max(0, 15 - rows.reduce((a, b) => a + b, 0)); // keno
+  const verts = verticalMarks(card, drawn);
+  if (fase === 'kuadra') return Math.max(0, Math.min(...verts.map((h) => 4 - h)));
+  if (fase === 'kina') return Math.max(0, Math.min(...verts.map((h) => 5 - h)));
+  return Math.max(0, 15 - cardMarks(card, drawn)); // keno
 }
 
 // Exibição: 3 linhas x 5 números na ordem de leitura da cartela (sem buracos).

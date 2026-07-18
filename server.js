@@ -42,15 +42,184 @@ app.get('/api/source', (req, res) => {
   }
 });
 
+// ===== Salvar página (modo edição admin) =====
+// Grava o HTML editado em public/index.html (com backup .bak). Requer sessão de ADMIN válida.
+const fs = require('fs');
+const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
+app.post('/api/save-page', (req, res) => {
+  const { sessionToken, cpf, html } = req.body || {};
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  if (!u.admin) {
+    return res.status(403).json({ error: 'Acesso restrito ao administrador.' });
+  }
+  if (typeof html !== 'string' || html.length < 100) {
+    return res.status(400).json({ error: 'HTML inválido ou muito curto.' });
+  }
+  // Anti-abuso: limite de tamanho (~1 MB)
+  if (Buffer.byteLength(html, 'utf8') > 1024 * 1024) {
+    return res.status(413).json({ error: 'HTML muito grande.' });
+  }
+  try {
+    // Backup antes de sobrescrever
+    try {
+      const atual = fs.readFileSync(INDEX_PATH, 'utf8');
+      fs.writeFileSync(INDEX_PATH + '.bak', atual, 'utf8');
+    } catch (e) { /* ignora se não existir */ }
+    fs.writeFileSync(INDEX_PATH, html, 'utf8');
+    res.json({ ok: true, bytes: Buffer.byteLength(html, 'utf8') });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Estado atual (apenas com TEST=1) para inspecao/debug
 if (process.env.TEST) {
   app.get('/api/state', (req, res) => res.json(round.publicState()));
 }
 
+// ===== Painel administrativo (requer sessão de admin) =====
+function requireAdmin(req, res, next) {
+  const { sessionToken, cpf } = req.body || req.query || req.headers;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  req.admin = u;
+  next();
+}
+
+app.get('/api/admin/users', (req, res) => {
+  const { sessionToken, cpf } = req.query;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  const list = Array.from(db.users.values())
+    .filter((x) => !/^(\d)\1{10}$/.test(x.cpf))
+    .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, admin: !!x.admin }));
+  res.json({ users: list, state: round.publicState() });
+});
+
+app.post('/api/admin/force', requireAdmin, (req, res) => {
+  const { phase } = req.body || {};
+  if (!['kuadra', 'kina', 'keno'].includes(phase)) return res.status(400).json({ error: 'fase inválida' });
+  // Força a próxima cartela do admin a vencer a fase.
+  const card = [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15],
+  ];
+  if (core.state.drawnBalls.length === 0) core.state.drawnBalls.push(...Array.from({ length: phase === 'kina' ? 5 : phase === 'keno' ? 15 : 4 }, (_, i) => i + 1));
+  core.state.currentBall = phase === 'kina' ? 5 : phase === 'keno' ? 15 : 4;
+  const idx = (++core.cardSeq);
+  core.roundCards.set(idx, { id: idx, owner: req.admin.cpf, card });
+  round.checarVencedores();
+  if (phase === 'keno') round.finalizarRodada();
+  else round.broadcastState();
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/round', requireAdmin, (req, res) => {
+  const { action } = req.body || {};
+  if (action === 'nova') { round.comecarRodada(); return res.json({ ok: true }); }
+  if (action === 'pausar') {
+    if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+    return res.json({ ok: true });
+  }
+  if (action === 'iniciar') { round.iniciarSorteio(); return res.json({ ok: true }); }
+  res.status(400).json({ error: 'ação inválida' });
+});
+
+app.post('/api/admin/user', requireAdmin, (req, res) => {
+  const cpfAlvo = req.body.cpfAlvo || req.body.cpf;
+  const { balance, nome } = req.body || {};
+  const cpfLimpo = String(cpfAlvo || '').replace(/\D/g, '');
+  const u = db.users.get(cpfLimpo);
+  if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
+  if (typeof balance === 'number') { u.balance = +(balance).toFixed(2); db.markDirty(cpfLimpo); }
+  if (nome) { u.nome = nome.trim(); db.markDirty(cpfLimpo); }
+  db.saveUsers();
+  res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance } });
+});
+
+// Lista pedidos de saque (admin)
+app.get('/api/admin/saques', (req, res) => {
+  const { sessionToken, cpf } = req.query;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  res.json({ saques: db.listSaques() });
+});
+
+// Resolve pedido de saque: aprovar (já debitado) ou recusar (estorna)
+app.post('/api/admin/saque', requireAdmin, (req, res) => {
+  const { id, status } = req.body || {};
+  if (!['pago', 'recusado'].includes(status)) return res.status(400).json({ error: 'status inválido' });
+  const pedido = db.listSaques().find((x) => x.id === id);
+  if (!pedido) return res.status(404).json({ error: 'pedido não encontrado' });
+  if (pedido.status !== 'pendente') return res.status(400).json({ error: 'pedido já resolvido' });
+  if (status === 'recusado') {
+    const u = db.users.get(pedido.cpf);
+    if (u) { u.balance = +(u.balance + pedido.valor).toFixed(2); db.markDirty(pedido.cpf); db.saveUsers(); }
+  }
+  db.updateSaque(id, status);
+  res.json({ ok: true, pedido: { id, status } });
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ===== Saque (jogador solicita) =====
+// Autentica pela sessão e debita o saldo como "reservado" (status pendente).
+app.post('/api/saque', (req, res) => {
+  const { sessionToken, cpf, valor, pix } = req.body || {};
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  const v = parseFloat(String(valor).replace(',', '.'));
+  if (!v || v < 1) return res.status(400).json({ error: 'Valor mínimo de saque é R$ 1,00.' });
+  const chave = String(pix || u.chavePix || '').trim();
+  if (!chave) return res.status(400).json({ error: 'Informe uma chave Pix.' });
+  if (u.balance < v) return res.status(400).json({ error: 'Saldo insuficiente para este saque.' });
+  // Reserva o valor (debita agora; admin estorna se recusar).
+  u.balance = +(u.balance - v).toFixed(2);
+  db.markDirty(cpfLimpo);
+  db.saveUsers();
+  const pedido = db.addSaque({
+    id: 'S' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    cpf: cpfLimpo,
+    nome: u.nome,
+    valor: +v.toFixed(2),
+    pix: chave,
+    status: 'pendente',
+    createdAt: Date.now(),
+  });
+  res.json({ ok: true, saldo: u.balance, pedido: { id: pedido.id, valor: pedido.valor, status: pedido.status } });
+});
+
 // Endpoints de TESTE (apenas com TEST=1): forçam vitórias para validação.
+// Requerem também o header x-test-secret igual a TEST_SECRET (nunca ligar em produção).
 if (process.env.TEST) {
   function authToken(req) {
     const token = req.headers.authorization && req.headers.authorization.replace('Bearer ', '');
+    const secret = req.headers['x-test-secret'];
+    if (process.env.TEST_SECRET && secret !== process.env.TEST_SECRET) return null;
     return token && db.sessions.get(token);
   }
 
@@ -101,7 +270,8 @@ socket.init(server);
 // Inicia a primeira rodada após carregar os usuários (PostgreSQL ou arquivo).
 (async function boot() {
   await db.initDB();
-  round.comecarRodada();
+  const retomou = await round.restaurarRodada();
+  if (!retomou) round.comecarRodada();
 
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, () => {

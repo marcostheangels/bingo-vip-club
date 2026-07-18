@@ -8,15 +8,13 @@
     "start": "node server.js",
     "dev": "node server.js",
     "demo": "node -e \"process.env.BOTS='1';process.env.INTERMISSION='10000';process.env.DRAW_INTERVAL='700';require('./server.js')\"",
-    "demo:bots": "node -e \"process.env.BOTS='1';require('./server.js')\""
+    "demo:bots": "node -e \"process.env.BOTS='1';require('./server.js')\"",
+    "migrate": "node scripts/migrate.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "pg": "^8.22.0",
     "socket.io": "^4.7.5"
-  },
-  "allowScripts": {
-    "puppeteer@25.3.0": true
   }
 }

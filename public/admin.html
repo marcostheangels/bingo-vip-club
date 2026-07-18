@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Bingo VIP Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  :root{ --neon:#8b5cff; --neon-2:#22d3ee; --yellow:#FFD700; --text:#f3f1ff; --muted:#9d96d4; --bg:#05052e; }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+  body{background:linear-gradient(180deg,#05052e,#04042a);color:var(--text);min-height:100vh;padding:24px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+  .logo-text{font-weight:800;font-size:26px;letter-spacing:2px;background:linear-gradient(180deg,#E8C87A,#B8860B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  button{cursor:pointer;border:none;border-radius:10px;padding:10px 14px;font-weight:700;background:linear-gradient(145deg,var(--neon),var(--neon-2));color:#fff;}
+  button.ghost{background:rgba(255,255,255,.08);color:var(--text);}
+  button.danger{background:linear-gradient(145deg,#ff5d5d,#b91c1c);}
+  .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:18px;}
+  .card h2{font-size:16px;margin-bottom:12px;color:var(--yellow);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
+  th{color:var(--muted);font-weight:600;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  input{padding:9px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.3);color:#fff;font-size:14px;}
+  .msg{margin-top:10px;font-size:13px;min-height:18px;color:#ff6b81;}
+  .ok{color:#34d399;}
+  .badge{font-size:10px;background:var(--neon);padding:2px 6px;border-radius:6px;color:#fff;}
+  .state span{display:inline-block;margin-right:14px;font-size:13px;color:var(--muted);}
+  .state b{color:var(--text);}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="logo-text">BINGO VIP CLUB — ADMIN</span>
+    <div class="row">
+      <a class="btn-action" href="/?edit=1" style="text-decoration:none"><button class="ghost">✏️ Editar Página do Jogo</button></a>
+      <button class="ghost" onclick="logout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="card state" id="stateBox">Carregando estado...</div>
+
+  <div class="card">
+    <h2>Controle da Rodada</h2>
+    <div class="row">
+      <button onclick="acaoRodada('nova')">🔄 Nova Rodada</button>
+      <button onclick="acaoRodada('pausar')">⏸️ Pausar Sorteio</button>
+      <button onclick="acaoRodada('iniciar')">▶️ Iniciar Sorteio</button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <span>Forçar vitória:</span>
+      <button onclick="forcar('kuadra')">Kuadra</button>
+      <button onclick="forcar('kina')">Kina</button>
+      <button onclick="forcar('keno')">Keno</button>
+    </div>
+    <div class="msg" id="rodadaMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Pedidos de Saque</h2>
+    <div style="overflow:auto;max-height:360px">
+      <table id="saquesTable">
+        <thead><tr><th>ID</th><th>Jogador</th><th>Valor</th><th>Chave Pix</th><th>Status</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="msg" id="saqueMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Usuários</h2>
+    <div class="row" style="margin-bottom:12px">
+      <input id="fCpf" placeholder="CPF" style="max-width:160px">
+      <input id="fNome" placeholder="Novo nome">
+      <input id="fSaldo" placeholder="Saldo (ex: 50)" type="number" style="max-width:120px">
+      <button onclick="editarUser()">Salvar Alteração</button>
+    </div>
+    <div style="overflow:auto;max-height:420px">
+      <table id="usersTable">
+        <thead><tr><th>CPF</th><th>Nome</th><th>E-mail</th><th>Saldo</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  const token = localStorage.getItem('bingo_session_token');
+  const cpf = localStorage.getItem('bingo_meu_cpf');
+  if (!token || !cpf) location.href = '/login.html';
+
+  function logout(){ localStorage.clear(); location.href='/login.html'; }
+
+  async function api(url, method, body){
+    const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined });
+    const data = await r.json().catch(()=>({}));
+    if (!r.ok) throw new Error(data.error||'Erro');
+    return data;
+  }
+
+  function brl(v){ return 'R$ ' + Number(v).toFixed(2).replace('.',','); }
+
+  async function carregar(){
+    try{
+      const data = await api('/api/admin/users?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
+      const s = data.state;
+      document.getElementById('stateBox').innerHTML =
+        `<span>Sorteio <b>#${s.sorteio}</b></span>`+
+        `<span>Status <b>${s.status}</b></span>`+
+        `<span>Bolas <b>${s.drawnBalls.length}/90</b></span>`+
+        `<span>Cartelas <b>${s.totalCards}</b></span>`+
+        `<span>Kuadra <b>${s.winners.kuadra?'✅':'⏳'}</b></span>`+
+        `<span>Kina <b>${s.winners.kina?'✅':'⏳'}</b></span>`+
+        `<span>Keno <b>${s.winners.keno?'✅':'⏳'}</b></span>`;
+      const tb = document.querySelector('#usersTable tbody');
+      tb.innerHTML = '';
+      data.users.forEach(u=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.cpf}${u.admin?' <span class="badge">ADM</span>':''}</td><td>${u.nome}</td><td>${u.email||''}</td><td>${brl(u.balance)}</td>`+
+          `<td><button class="ghost" onclick="preencher('${u.cpf}','${u.nome.replace(/'/g,"")}',${u.balance})">Editar</button></td>`;
+        tb.appendChild(tr);
+      });
+      await carregarSaques();
+    }catch(e){ alert('Acesso negado: '+e.message); location.href='/login.html'; }
+  }
+
+  async function carregarSaques(){
+    try{
+      const d = await api('/api/admin/saques?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
+      const tb = document.querySelector('#saquesTable tbody');
+      tb.innerHTML = '';
+      if (!d.saques.length){ tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">Nenhum pedido.</td></tr>'; return; }
+      d.saques.forEach(s=>{
+        const tr = document.createElement('tr');
+        const acoes = s.status==='pendente'
+          ? `<button class="ghost" onclick="resolverSaque('${s.id}','pago')">Pagar</button> <button class="ghost" onclick="resolverSaque('${s.id}','recusado')">Recusar</button>`
+          : `<span style="color:var(--muted)">${s.status}</span>`;
+        tr.innerHTML = `<td>${s.id}</td><td>${s.nome} <small style="color:var(--muted)">${s.cpf}</small></td><td>${brl(s.valor)}</td><td>${s.pix}</td><td>${s.status}</td><td>${acoes}</td>`;
+        tb.appendChild(tr);
+      });
+    }catch(e){ /* silencioso */ }
+  }
+
+  async function resolverSaque(id, status){
+    const m = document.getElementById('saqueMsg');
+    try{ await api('/api/admin/saque','POST',{sessionToken:token,cpf,id,status}); m.className='msg ok'; m.textContent='Saque '+status+': '+id; await carregarSaques(); }
+    catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  function preencher(c, n, b){ document.getElementById('fCpf').value=c; document.getElementById('fNome').value=n; document.getElementById('fSaldo').value=b; }
+
+  async function acaoRodada(a){
+    const m = document.getElementById('rodadaMsg');
+    try{ await api('/api/admin/round','POST',{sessionToken:token,cpf,action:a}); m.className='msg ok'; m.textContent='OK: '+a; await carregar(); }
+    catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  async function forcar(p){
+    const m = document.getElementById('rodadaMsg');
+    try{ await api('/api/admin/force','POST',{sessionToken:token,cpf,phase:p}); m.className='msg ok'; m.textContent='Vitória forçada: '+p; await carregar(); }
+    catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  async function editarUser(){
+    const m = document.getElementById('rodadaMsg');
+    const c = document.getElementById('fCpf').value.replace(/\D/g,'');
+    const nome = document.getElementById('fNome').value.trim();
+    const saldo = parseFloat(document.getElementById('fSaldo').value);
+    if(!c){ m.className='msg'; m.textContent='Informe o CPF.'; return; }
+    try{
+      await api('/api/admin/user','POST',{sessionToken:token,cpf,cpfAlvo:c,nome: nome||undefined, balance: isNaN(saldo)?undefined:saldo});
+      m.className='msg ok'; m.textContent='Usuário atualizado.'; await carregar();
+    }catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  carregar();
+  setInterval(carregar, 5000);
+</script>
+</body>
+</html>

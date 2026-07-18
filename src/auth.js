@@ -6,8 +6,9 @@ function loginResponse(u, res) {
   const token = db.newToken();
   u.sessionToken = token;
   db.sessions.set(token, u.cpf);
+  db.markDirty(u.cpf);
   db.saveUsers();
-  res.json({ sessionToken: token, cpf: u.cpf, nome: u.nome, email: u.email, balance: u.balance });
+  res.json({ sessionToken: token, cpf: u.cpf, nome: u.nome, email: u.email, balance: u.balance, admin: !!u.admin });
 }
 
 function registerRoutes(app) {
@@ -32,28 +33,13 @@ function registerRoutes(app) {
     loginResponse(u, res);
   });
 
-  // Login demo: conta de teste pronta (sobe com BOTS=1 / demo)
-  app.post('/api/login-demo', (req, res) => {
-    const nomeReq = (req.body && req.body.nome || '').trim();
-    if (!db.users.has(config.DEMO_CPF)) {
-      db.users.set(config.DEMO_CPF, {
-        cpf: config.DEMO_CPF, nome: nomeReq || 'Demo Jogador', email: 'demo@demo.com',
-        chavePix: 'demo@demo.com', password: db.hash(config.DEMO_SENHA), balance: 50.0, sessionToken: null,
-      });
-      db.saveUsers();
-    }
-    const u = db.users.get(config.DEMO_CPF);
-    if (nomeReq) { u.nome = nomeReq; db.saveUsers(); }
-    loginResponse(u, res);
-  });
-
   app.post('/api/validar-sessao', (req, res) => {
     const { sessionToken, cpf } = req.body || {};
     const cpfLimpo = String(cpf || '').replace(/\D/g, '');
     const tokenKey = sessionToken && db.sessions.get(sessionToken);
     const u = db.users.get(cpfLimpo);
     if (u && tokenKey === cpfLimpo && u.sessionToken === sessionToken) {
-      res.json({ valido: true, nome: u.nome, cpf: u.cpf, email: u.email, balance: u.balance });
+      res.json({ valido: true, nome: u.nome, cpf: u.cpf, email: u.email, balance: u.balance, admin: !!u.admin });
     } else {
       res.json({ valido: false });
     }

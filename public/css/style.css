@@ -568,6 +568,32 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .painel-inspecionavel { cursor: pointer; }
 .painel-inspecionavel:hover { outline: 2px dashed rgba(139,92,255,.5); }
 
+/* ===== Modo Edição (barra flutuante) ===== */
+#editorBar {
+    position: fixed; bottom: 14px; right: 14px; z-index: 10010;
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(160deg,#1d2a5e,#0c1030);
+    border: 1px solid rgba(139,92,255,.5);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 0 30px rgba(139,92,255,.25);
+    padding: 8px 10px; border-radius: 12px; color: #fff;
+}
+#editorBar button {
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 12px; font-family: inherit;
+}
+#editorBar button:hover { background: rgba(139,92,255,.35); }
+#editorBar #edSave { background: rgba(52,232,157,.15); border-color: rgba(52,232,157,.5); color: #34e89e; }
+#editorBar #edSave:hover { background: rgba(52,232,157,.3); }
+#editorBar #edCancel { background: rgba(255,80,80,.15); border-color: rgba(255,80,80,.5); color: #ff8a8a; }
+#editorBar #edHint { font-size: 11px; color: var(--muted); margin-right: 4px; }
+body.editor-active [contenteditable="true"]:focus {
+    outline: 2px solid #8b5cff; outline-offset: 2px; background: rgba(139,92,255,.06);
+}
+body.editor-active [contenteditable="true"]:hover {
+    outline: 1px dashed rgba(139,92,255,.5);
+}
+
 /* ===== RESPONSIVO: telas estreitas ===== */
 @media (max-width: 1400px) {
     .right-panel { width: 400px; }
@@ -598,3 +624,84 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
     .buy-total { margin-left: 0; order: 3; width: 100%; justify-content: center; margin-top: 8px; }
     .phase-stats { gap: 12px; }
 }
+
+/* ===== Botão Depósito ===== */
+.btn-deposito {
+    background: linear-gradient(145deg, #34d399, #059669);
+    border: 1px solid rgba(52, 211, 153, 0.5);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+}
+.btn-deposito:hover { filter: brightness(1.1); }
+.btn-deposito .dep-label { color: #fff; font-weight: 800; }
+
+.btn-saque {
+    background: linear-gradient(145deg, #22d3ee, #8b5cff);
+    border: 1px solid rgba(34, 211, 238, 0.5);
+    box-shadow: 0 4px 14px rgba(34, 211, 238, 0.3);
+}
+.btn-saque:hover { filter: brightness(1.1); }
+.btn-saque .saque-label { color: #fff; font-weight: 800; }
+
+/* ===== Modal Depósito ===== */
+.dep-modal {
+    position: fixed; inset: 0; z-index: 1200;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(3, 3, 25, 0.82); backdrop-filter: blur(6px);
+    padding: 20px;
+}
+.dep-modal.show { display: flex; }
+.dep-box {
+    width: 100%; max-width: 380px;
+    background: linear-gradient(160deg, rgba(20, 26, 62, 0.95), rgba(8, 10, 32, 0.95));
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    border-radius: 20px; padding: 22px 22px 18px;
+    box-shadow: 0 24px 70px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.dep-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.dep-title { font-weight: 800; font-size: 17px; color: #fff; }
+.dep-close { background: rgba(255, 255, 255, 0.08); border: none; color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.dep-balance { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.dep-balance b { color: var(--green); }
+.dep-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.dep-q {
+    padding: 10px 4px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: var(--text);
+    transition: all .15s;
+}
+.dep-q:hover { background: rgba(52, 211, 153, 0.18); }
+.dep-q.active { background: linear-gradient(145deg, #34d399, #059669); border-color: #34d399; color: #fff; }
+.dep-custom { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.dep-custom span { color: var(--muted); font-weight: 700; }
+.dep-custom input {
+    flex: 1; padding: 11px 13px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(0, 0, 0, 0.3); color: #fff; font-size: 15px; outline: none;
+}
+.dep-custom input:focus { border-color: #34d399; box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+.dep-confirm {
+    width: 100%; padding: 13px; border: none; border-radius: 14px; cursor: pointer;
+    background: linear-gradient(145deg, #34d399, #059669); color: #fff; font-weight: 800; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5); transition: transform .12s, filter .12s;
+}
+.dep-confirm:hover { filter: brightness(1.1); }
+.dep-confirm:active { transform: translateY(2px); }
+.dep-msg { margin-top: 12px; text-align: center; font-size: 13px; min-height: 18px; color: #ff6b81; }
+.dep-msg.ok { color: var(--green); }
+.dep-hint { margin-top: 10px; text-align: center; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+
+/* Tela de pagamento PIX */
+.dep-pix { text-align: center; }
+.dep-pix .pix-amount { font-size: 26px; font-weight: 800; color: var(--green); margin: 4px 0 14px; }
+.dep-pix .pix-qr { width: 200px; height: 200px; margin: 0 auto 12px; background: #fff; border-radius: 14px; padding: 10px; }
+.dep-pix .pix-qr img, .dep-pix .pix-qr canvas { width: 100% !important; height: 100% !important; }
+.dep-pix .pix-copy-row { display: flex; gap: 8px; margin-top: 6px; }
+.dep-pix .pix-code {
+    flex: 1; font-size: 10.5px; padding: 9px 10px; border-radius: 10px; color: var(--text);
+    background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.14);
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.dep-pix .pix-copy { padding: 9px 14px; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap;
+    background: linear-gradient(145deg, var(--neon), var(--neon-2)); color: #fff; font-weight: 700; }
+.dep-pix .pix-back { margin-top: 12px; width: 100%; padding: 10px; border-radius: 10px; cursor: pointer;
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); color: var(--text); font-weight: 700; }
+.dep-pix .pix-status { margin-top: 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }
+

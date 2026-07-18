@@ -54,6 +54,7 @@ function init(server) {
       }
       if (u.balance < custo) return cb && cb({ error: 'Saldo insuficiente.' });
       u.balance = +(u.balance - custo).toFixed(2);
+      db.markDirty(owner);
       db.saveUsers();
       for (let i = 0; i < qtd; i++) {
         const id = ++core.cardSeq;

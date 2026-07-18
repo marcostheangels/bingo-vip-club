@@ -23,3 +23,7 @@ users.json
 
 # Backup local (zip)
 BINGO2026_BACKUP*.zip
+
+# Backup de index editado
+public/index.html.bak
+

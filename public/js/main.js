@@ -12,6 +12,8 @@
 
   document.getElementById('btnSair').addEventListener('click', sairDaConta);
 
+  const editorActive = new URLSearchParams(location.search).has('edit');
+
   // ===== Inspeção de código: clique simples em painel com data-src =====
   const srcModal = document.getElementById('srcModal');
   const srcTitle = document.getElementById('srcTitle');
@@ -70,8 +72,60 @@
     srcModal.classList.add('show');
   }
 
-  document.querySelectorAll('[data-src]').forEach((el) => {
-    el.classList.add('painel-inspecionavel');
-    el.addEventListener('click', (e) => { e.stopPropagation(); abrirPainel(el); });
+  // ===== MODO EDITAÇÃO: substitui painel-inspecionavel para permitir edição de TODOS os elementos =====
+  if (editorActive) {
+    document.querySelectorAll('[data-src]').forEach((el) => {
+      el.classList.remove('painel-inspecionavel');
+      el.removeEventListener('click', (e) => { e.stopPropagation(); abrirPainel(el); });
+    });
+
+    document.querySelectorAll('[contenteditable="true"]').forEach((el) => el.removeAttribute('contenteditable'));
+
+    document.body.setAttribute('contenteditable', 'true');
+
+    document.body.addEventListener('click', (e) => {
+      const target = e.target;
+      if (target.closest('#editorBar') || target.closest('.src-modal')) return;
+
+      if (!target.closest('button, input, textarea, select, [contenteditable="true"])') && target !== document.body) {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(target);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    });
+  }
+
+  // ===== Funcionalidade extra do editor =====
+  // Ajustar alturas dos painéis no modo edição
+  const observer = new MutationObserver(() => {
+    if (editorActive) {
+      // Tornar panels laterais mais estreitos
+      const rightPanel = document.querySelector('.right-panel');
+      if (rightPanel) rightPanel.style.width = 'auto';
+      const infoColumn = document.querySelector('.info-column');
+      if (infoColumn) infoColumn.style.width = 'auto';
+
+      // Tornar o mapa de bolas mais visível
+      const boardGrid = document.querySelector('.balls-grid');
+      if (boardGrid) boardGrid.style.background = 'rgba(255,255,255,.05)';
+
+      // Tornar painéis de prêmios mais visíveis
+      document.querySelectorAll('.prize-card').forEach(p => p.style.background = 'rgba(255,255,255,.05)');
+      document.querySelectorAll('.info-card').forEach(i => i.style.background = 'rgba(255,255,255,.05)');
+    }
+  });
+  observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+
+  // Indicador visual de altura dos painéis editáveis
+  document.body.addEventListener('keydown', (e) => {
+    if (editorActive && (e.ctrlKey || e.metaKey) && e.key === '=') {
+      e.preventDefault();
+      const board = document.querySelector('.balls-board');
+      const rightPanel = document.querySelector('.right-panel');
+      if (board) board.style.height = board.style.height ? '' : '400px';
+      if (rightPanel) rightPanel.style.height = rightPanel.style.height ? '' : '500px';
+    }
   });
 })();

@@ -79,12 +79,6 @@
       <div class="msg" id="loginError"></div>
     </form>
 
-    <button class="btn btn-demo" type="button" onclick="entrarDemo()">⚡ Entrar como Demo (teste)</button>
-    <div class="demo-name-row">
-      <input id="demoName" placeholder="Seu nome (opcional)" maxlength="20">
-      <small>Deixe em branco para "Demo Jogador"</small>
-    </div>
-
     <!-- CADASTRO -->
     <form id="authRegister" style="display:none" onsubmit="return false">
       <label for="regNome">Nome completo</label>
@@ -145,20 +139,6 @@
     err.textContent='Entrando...'; err.style.color='#9d96d4';
     try{
       const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cpf,senha})});
-      const data=await r.json();
-      if(!r.ok){ err.style.color='#ff6b81'; err.textContent=data.error||'Erro ao entrar.'; return; }
-      localStorage.setItem('bingo_session_token',data.sessionToken);
-      localStorage.setItem('bingo_meu_cpf',data.cpf);
-      location.href='/';
-    }catch(e){ err.style.color='#ff6b81'; err.textContent='Falha de conexão.'; }
-  }
-
-  async function entrarDemo(){
-    const err=document.getElementById('loginError');
-    const nomeDemo=document.getElementById('demoName').value.trim();
-    err.textContent='Entrando...'; err.style.color='#9d96d4';
-    try{
-      const r=await fetch('/api/login-demo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ nome: nomeDemo })});
       const data=await r.json();
       if(!r.ok){ err.style.color='#ff6b81'; err.textContent=data.error||'Erro ao entrar.'; return; }
       localStorage.setItem('bingo_session_token',data.sessionToken);
