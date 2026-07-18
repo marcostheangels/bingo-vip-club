@@ -1,0 +1,18 @@
+{
+  "name": "bingo-vip-club",
+  "version": "1.0.0",
+  "description": "Bingo online multiplayer 90 bolas (Kuadra/Kina/Keno)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "demo": "node -e \"process.env.BOTS='1';process.env.INTERMISSION='10000';process.env.DRAW_INTERVAL='700';require('./server.js')\"",
+    "demo:bots": "node -e \"process.env.BOTS='1';require('./server.js')\""
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}

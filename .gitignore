@@ -1,0 +1,22 @@
+node_modules/
+npm-debug.log*
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Arquivos temporarios / testes locais
+srv.out
+srv.err
+srv.pid
+*.pid
+test_*.js
+*.log
+
+# Sistema
+.idea/
+.vscode/
+
+# Dados de usuarios (nao subir para o git)
+users.json
