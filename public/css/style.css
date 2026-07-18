@@ -15,9 +15,9 @@ body { -webkit-user-select: text; user-select: text; }
 body {
     background: var(--bg-gradient);
     color: var(--text);
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
     overflow-x: hidden;
+    overflow-y: auto;
     padding: 52px 15px 12px;
     display: flex;
     flex-direction: column;
@@ -108,7 +108,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .side-icon:hover { transform: scale(1.15); filter: drop-shadow(0 0 10px var(--yellow)); }
 
 /* 3. COLUNA DE INFOS */
-.info-column { display: flex; flex-direction: column; gap: 15px; width: 200px; flex: 0 0 auto; }
+.info-column { display: flex; flex-direction: column; gap: 15px; width: 200px; flex: 0 0 200px; min-width: 150px; }
 .info-card {
     background: var(--box-blue); border: 2px solid rgba(255, 255, 255, 0.12); border-radius: 14px;
     padding: 12px; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -269,13 +269,13 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 
 /* ===== 7. PAINEL DIREITO COM ROLAGEM ISOLADA ===== */
 .right-panel {
-    width: 440px; max-width: 100%; display: flex; flex-direction: column; gap: 12px;
-    flex-shrink: 0; min-height: 0;
+    width: 440px; max-width: 100%; flex: 0 0 440px; display: flex; flex-direction: column; gap: 12px;
+    min-height: 0;
 }
 .right-panel::-webkit-scrollbar { display: none; }
 .right-panel { -ms-overflow-style: none; scrollbar-width: none; }
 
-.players-container { background: var(--panel-bg); border-radius: 10px; padding: 8px; overflow-y: auto; flex-shrink: 0; max-height: 360px; }
+.players-container { background: var(--panel-bg); border-radius: 10px; padding: 8px; overflow-y: auto; flex: 1 1 auto; max-height: 40vh; min-height: 0; }
 .fase-painel { font-size: 11px; color: #ff9a33; font-weight: 700; }
 .pphase-empty { font-size: 11px; color: var(--muted); padding: 8px 4px; }
 .player-row { display: flex; align-items: center; gap: 6px; padding: 5px 2px; border-bottom: 1px solid rgba(255,255,255,.06); }
@@ -329,12 +329,12 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .fase-atual { display: none; }
 
 /* Minhas cartelas */
-.my-cards { background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; }
+.my-cards { background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .my-cards-title { font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
 .zoom-ctrl { display: flex; gap: 5px; }
 .btn-ctrl { background: #333866; color: #fff; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-weight: 700; }
 .btn-ctrl.yellow { background: var(--yellow); color: #000; }
-.my-cards-scroll { overflow-y: visible; }
+.my-cards-scroll { overflow-y: auto; flex: 1 1 auto; max-height: 35vh; }
 .my-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cardw, 200px), 1fr)); gap: 10px; }
 
 .ticket3d { background: linear-gradient(160deg, rgba(139, 92, 255, .14), rgba(255, 255, 255, .02)); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 14px; padding: 10px; }

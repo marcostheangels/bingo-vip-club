@@ -15,5 +15,8 @@
     "express": "^4.19.2",
     "pg": "^8.22.0",
     "socket.io": "^4.7.5"
+  },
+  "allowScripts": {
+    "puppeteer@25.3.0": true
   }
 }
