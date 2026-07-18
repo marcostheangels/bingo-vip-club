@@ -129,9 +129,14 @@ function renderState(s) {
       lista.forEach((item, i) => {
         const isMe = item.owner === meuCpf;
         const faltantes = item.faltantes || [];
-        const balls = faltantes.map((n) => `<span class="pballmini" title="${n}">${n}</span>`).join('');
+        let balls;
+        if (item.done) {
+          balls = `<span class="pballmini done-fase" title="Fez ${NOME[faseAtual]}">✓ ${NOME[faseAtual].toUpperCase()}</span>`;
+        } else {
+          balls = faltantes.map((n) => `<span class="pballmini" title="${n}">${n}</span>`).join('');
+        }
         const row = document.createElement('div');
-        row.className = 'player-row' + (isMe ? ' me' : '');
+        row.className = 'player-row' + (isMe ? ' me' : '') + (item.done ? ' done-row' : '');
         row.innerHTML = `
           <span class="prank">${i + 1}</span>
           <span class="pcode">${isMe ? '★' : ''}#${item.cardId}</span>

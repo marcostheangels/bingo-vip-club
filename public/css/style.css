@@ -285,6 +285,8 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .player-name { color: #fff; font-weight: 600; min-width: 70px; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .pballs { display: flex; gap: 3px; flex-wrap: wrap; flex: 1; }
 .pballmini { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 700; background: rgba(139,92,255,.25); color: #cfc4ff; border: 1px solid rgba(139,92,255,.5); flex-shrink: 0; }
+.pballmini.done-fase { width: auto; padding: 0 8px; border-radius: 10px; font-size: 9px; letter-spacing: .5px; background: linear-gradient(145deg, #34e89e, #22d3ee); color: #04121f; border-color: transparent; box-shadow: 0 0 10px rgba(52,232,158,.5); }
+.player-row.done-row { background: rgba(52,232,158,.12); border-color: rgba(52,232,158,.4); }
 
 /* Painel de compra */
 .buy-panel { background: var(--box-blue); border-radius: 12px; padding: 12px; flex-shrink: 0; transition: box-shadow .3s; }

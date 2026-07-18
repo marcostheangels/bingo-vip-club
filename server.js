@@ -45,6 +45,7 @@ if (process.env.TEST) {
     const idx = (++core.cardSeq);
     core.roundCards.set(idx, { id: idx, owner: key, card });
     round.checarVencedores();
+    round.broadcastState();
     res.json({ ok: true, forced: true });
   });
 

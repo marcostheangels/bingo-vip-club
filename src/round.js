@@ -144,18 +144,19 @@ function publicState() {
 
   // Painel "quem está perto de ganhar": para cada fase, UMA entrada por jogador
   // (a cartela dele mais próxima de ganhar), em ordem crescente de quem falta menos bolas.
+  // Quem JÁ fez a fase aparece no topo, marcado com done:true (número vazio, "✓ FASE").
   const rankingPorFase = {};
   for (const phase of game.PHASE_SEQUENCE) {
     const porOwner = new Map();
     for (const c of core.roundCards.values()) {
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
       const fase = ev[phase];
-      if (fase.done) continue; // já ganhou essa fase
       const faltantes = game.missingForPhase(c.card, core.state.drawnBalls, phase);
       const atual = porOwner.get(c.owner);
-      // mantém a cartela com menor falta (desempate: menor id)
-      if (!atual || fase.falta < atual.falta || (fase.falta === atual.falta && c.id < atual.cardId)) {
-        porOwner.set(c.owner, { cardId: c.id, falta: fase.falta, faltantes });
+      // mantém a cartela com menor falta (desempate: menor id); se já fez, falta=0
+      const faltaRank = fase.done ? 0 : fase.falta;
+      if (!atual || faltaRank < atual.faltaRank || (faltaRank === atual.faltaRank && c.id < atual.cardId)) {
+        porOwner.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: !!fase.done, faltantes });
       }
     }
     const lista = [];
@@ -166,10 +167,12 @@ function publicState() {
         owner,
         name: u ? u.nome : owner,
         falta: melhor.falta,
+        done: melhor.done,
         faltantes: melhor.faltantes,
       });
     }
-    lista.sort((a, b) => a.falta - b.falta || a.cardId - b.cardId);
+    // done primeiro (topo), depois por quem falta menos
+    lista.sort((a, b) => (b.done - a.done) || (a.falta - b.falta) || (a.cardId - b.cardId));
     rankingPorFase[phase] = lista;
   }
 
