@@ -1,4 +1,53 @@
 :root {
+    /* ===== LAYOUT CONFIG - AJUSTE AQUI ===== */
+    /* Espaçamentos globais */
+    --gap-main: 15px;           /* gap entre colunas do main-container */
+    --gap-cards: 15px;          /* gap entre cards (prêmios, info, etc) */
+    --padding-page: 52px 15px 12px; /* padding do body (top, sides, bottom) */
+    --radius-card: 14px;        /* border-radius padrão dos painéis */
+    --radius-big: 16px;         /* border-radius maior (game-display) */
+
+    /* Header */
+    --header-height: 70px;
+    --header-margin-b: 12px;
+    --logo-height: 46px;
+    --logo-font: 26px;
+
+    /* Coluna esquerda (info) */
+    --info-col-width: 200px;
+    --info-col-min: 150px;
+    --info-card-pad: 12px;
+    --info-font: 22px;
+
+    /* Área central */
+    --prizes-gap: 15px;
+    --prize-pad: 15px 10px;
+    --prize-font: 20px;
+
+    /* Bola + painel fase */
+    --game-display-pad: clamp(12px, 2vw, 20px);
+    --game-display-gap: 28px;
+    --ball-size: clamp(150px, 22vw, 260px);
+    --ball-font: clamp(70px, 10vw, 130px);
+
+    /* Painel da fase */
+    --phase-pad: clamp(14px, 2vw, 26px) clamp(12px, 2vw, 24px);
+    --phase-name-font: clamp(1.8em, 4vw, 3.4em);
+    --phase-sub-font: clamp(.85em, 1.4vw, 1.05em);
+    --phase-prize-font: clamp(1.3em, 2.6vw, 2.2em);
+    --phase-stats-gap: clamp(18px, 4vw, 36px);
+
+    /* Mapa 90 bolas */
+    --balls-height: clamp(96px, 13vh, 150px);
+    --cell-font: 9px;
+
+    /* Painel direito */
+    --right-width: 440px;
+    --right-max: 100%;
+    --players-max-h: min(360px, 45vh);
+    --mycards-max-h: 35vh;
+
+    /* Cores */
     --bg-gradient: linear-gradient(180deg, #05052e 0%, #04042a 100%);
     --panel-bg: rgba(4, 4, 30, 0.85);
     --box-blue: #000088;
@@ -6,6 +55,7 @@
     --neon: #8b5cff; --neon-2: #22d3ee; --green: #34e89e; --pink: #ff4d9d;
     --text: #f3f1ff; --muted: #9d96d4;
 }
+
 * {
     margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif;
 }
@@ -18,7 +68,7 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 52px 15px 12px;
+    padding: var(--padding-page);
     display: flex;
     flex-direction: column;
 }
@@ -63,16 +113,16 @@ body {
 /* ===== 1. TOPO / NAVBAR ===== */
 header {
     position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;
-    height: 70px; padding: 0 18px; border-radius: 14px; margin-bottom: 12px;
+    height: var(--header-height); padding: 0 18px; border-radius: var(--radius-card); margin-bottom: var(--header-margin-b);
     background: linear-gradient(160deg, rgba(20, 26, 62, 0.8), rgba(8, 10, 32, 0.7));
     border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow: 0 14px 50px rgba(139, 92, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10);
     flex: 0 0 auto;
 }
 .logo-area { display: flex; align-items: center; gap: 12px; }
-.logo-img { height: 46px; width: auto; border-radius: 10px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.logo-img { height: var(--logo-height); width: auto; border-radius: 10px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
 .logo-text {
-    font-weight: 800; font-size: 26px; letter-spacing: 2px;
+    font-weight: 800; font-size: var(--logo-font); letter-spacing: 2px;
     background: linear-gradient(180deg, #E8C87A 0%, #B8860B 50%, #8a6304 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, .7), 0 0 14px rgba(184, 134, 11, .35);
@@ -97,7 +147,7 @@ header {
 
 /* ===== LAYOUT DO CONTAINER PRINCIPAL ===== */
 .main-container {
-    position: relative; z-index: 1; display: flex; gap: 15px; align-items: stretch;
+    position: relative; z-index: 1; display: flex; gap: var(--gap-main); align-items: stretch;
     flex: 1; min-height: 0; margin-bottom: 5px;
     max-width: 100%; overflow-x: hidden;
 }
@@ -108,17 +158,17 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .side-icon:hover { transform: scale(1.15); filter: drop-shadow(0 0 10px var(--yellow)); }
 
 /* 3. COLUNA DE INFOS */
-.info-column { display: flex; flex-direction: column; gap: 15px; width: 200px; flex: 0 0 200px; min-width: 150px; }
+.info-column { display: flex; flex-direction: column; gap: 15px; width: var(--info-col-width); flex: 0 0 var(--info-col-width); min-width: var(--info-col-min); }
 .info-card {
-    background: var(--box-blue); border: 2px solid rgba(255, 255, 255, 0.12); border-radius: 14px;
-    padding: 12px; text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--box-blue); border: 2px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-card);
+    padding: var(--info-card-pad); text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .info-card.dark-blue { background: linear-gradient(160deg, #1d2a5e, #0c1230); }
 .info-card span { display: block; font-size: 12px; color: var(--yellow); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-.info-card strong { font-size: 22px; font-weight: 700; }
+.info-card strong { font-size: var(--info-font); font-weight: 700; }
 
 .ordem-box {
-    background: var(--red); border-radius: 14px; padding: 12px; flex: 1; display: flex; flex-direction: column;
+    background: var(--red); border-radius: var(--radius-card); padding: 12px; flex: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 10px; font-weight: 700; border: 2px solid #ffb3c1;
     box-shadow: 0 8px 24px rgba(255, 59, 92, .3); overflow: hidden;
 }
