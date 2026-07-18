@@ -33,8 +33,6 @@ socket.on('myCards', (cards) => {
 
 socket.on('state', (s) => {
   window.__lastState = s;
-  const dbg = document.getElementById('debugPainel');
-  if (dbg) dbg.textContent = `v=${CLIENT_VER} | recv phaseIndex=${s.phaseIndex} ranking?${!!s.ranking} kuadra=${(s.ranking && s.ranking.kuadra || []).length} total=${s.totalCards}`;
   window.renderState(s);
 });
 

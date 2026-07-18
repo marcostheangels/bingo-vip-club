@@ -116,8 +116,6 @@ function renderState(s) {
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
     document.getElementById('fasePainel').textContent = '— ' + NOME[faseAtual];
     const lista = ((s.ranking && s.ranking[faseAtual]) || []).slice();
-    document.getElementById('debugPainel').textContent =
-      `debug: status=${s.status} totalCards=${s.totalCards} fase=${faseAtual} rankingLen=${lista.length}`;
     if (lista.length === 0) {
       const vazio = document.createElement('div');
       vazio.className = 'pphase-empty';
