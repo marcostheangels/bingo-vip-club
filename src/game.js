@@ -104,11 +104,13 @@ function missingForPhase(card, drawnBalls, phase) {
     const hits = rowMarks(card, r, drawn);
     if (hits > melhorHits) { melhorHits = hits; melhorLinha = r; }
   }
+  // Quantidade que REALMENTE falta (deve bater com evaluateCard.falta).
+  const faltaReal = Math.max(0, alvo - melhorHits);
   const faltantes = card[melhorLinha]
     .filter((v) => v !== '' && !drawn.has(Number(v)))
     .map(Number)
     .sort((a, b) => a - b);
-  return faltantes.slice(0, alvo);
+  return faltantes.slice(0, faltaReal);
 }
 
 module.exports = {

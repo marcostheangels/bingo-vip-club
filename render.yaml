@@ -14,3 +14,5 @@ services:
         value: 3000
       - key: INTERMISSION
         value: 60000
+      - key: BOTS
+        value: "1"
