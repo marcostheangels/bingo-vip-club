@@ -22,13 +22,26 @@
   function fecharModal() { srcModal.classList.remove('show'); srcFiles.length = 0; srcTabs.innerHTML = ''; srcCode.innerHTML = ''; }
   document.getElementById('srcClose').addEventListener('click', fecharModal);
   srcModal.addEventListener('click', (e) => { if (e.target === srcModal) fecharModal(); });
+  document.getElementById('srcCopy').addEventListener('click', async () => {
+    const active = document.querySelector('.src-tab.active');
+    if (!active) return;
+    const { content } = srcFiles[+active.dataset.i];
+    try { await navigator.clipboard.writeText(content); document.getElementById('srcCopy').textContent = '✓ Copiado'; setTimeout(() => document.getElementById('srcCopy').textContent = '⧉ Copiar', 1500); }
+    catch { document.getElementById('srcCopy').textContent = 'Erro'; }
+  });
 
+  const SRC_MAX_LINES = 150;
   function mostrarArquivo(idx) {
     document.querySelectorAll('.src-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
     const { name, content } = srcFiles[idx];
     srcTitle.textContent = 'Código: ' + name;
     const linhas = content.split('\n');
-    srcCode.innerHTML = linhas.map((l, i) => `<span class="ln">${i + 1}</span>${escapeHtml(l)}`).join('\n');
+    const mostradas = linhas.slice(0, SRC_MAX_LINES);
+    let html = mostradas.map((l, i) => `<span class="ln">${i + 1}</span>${escapeHtml(l)}`).join('\n');
+    if (linhas.length > SRC_MAX_LINES) {
+      html += `\n<span class="ln">…</span><span style="color:#8b5cff">// arquivo tem ${linhas.length} linhas — mostrando ${SRC_MAX_LINES}. Me diga o trecho exato que quer ver.</span>`;
+    }
+    srcCode.innerHTML = html;
   }
 
   function escapeHtml(s) {
