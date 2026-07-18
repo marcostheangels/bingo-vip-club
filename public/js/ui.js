@@ -6,10 +6,8 @@ const elStatusBanner = document.getElementById('statusBanner');
 function updateStatusBanner(s) {
   let ico = '🔔', txt = '', cls = 'show';
   if (s.status === 'intermission') {
-    const falta = Math.max(0, Math.ceil((s.startsAt - Date.now()) / 1000));
-    ico = '⏳';
-    txt = `Próxima partida em ${falta}s — compre suas cartelas!`;
-    cls = 'show warn';
+    // Faixa de intermission oculta por pedido (o aviso fica no overlay de contagem).
+    ico = ''; txt = ''; cls = '';
   } else if (s.status === 'running') {
     if (s.drawnBalls.length === 0) {
       ico = '🚀'; txt = `Partida iniciada! Sorteio #${s.sorteio} — boa sorte!`; cls = 'show go';
@@ -162,7 +160,7 @@ function renderState(s) {
   const buyPanel = document.getElementById('buyPanel');
 
   if (s.status === 'intermission') {
-    banner.classList.add('show');
+    banner.classList.remove('show');
     overlay.classList.add('show');
     buyPanel.classList.add('buyable');
     btnComprar.disabled = false;
@@ -200,9 +198,8 @@ function updateCountdown() {
   const banner = document.getElementById('statusBanner');
   const timeEl = document.getElementById('countdownTime');
   const badge = document.getElementById('buyBadge');
-  document.getElementById('statusIco').textContent = '⏳';
-  document.getElementById('statusText').textContent = `Próxima partida em ${secs}s — compre suas cartelas!`;
-  banner.className = 'show warn';
+  document.getElementById('statusIco').textContent = '';
+  document.getElementById('statusText').textContent = '';
   if (timeEl) {
     timeEl.textContent = secs;
     timeEl.classList.toggle('urgent', secs <= 10);
