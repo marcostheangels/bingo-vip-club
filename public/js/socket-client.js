@@ -40,6 +40,23 @@ socket.on('state', (s) => {
 socket.on('winner', (w) => {
   window.playWinSound(w.phase);
   window.showWinOverlay(w);
+  // Badge temporário no painel "Quem está perto"
+  if (w.vencedores && w.vencedores.length) {
+    w.vencedores.forEach((v) => {
+      const row = document.querySelector(`#players-list .player-row[data-owner="${v.cpf}"]`);
+      if (row) {
+        const balls = row.querySelector('.pballs');
+        if (balls) {
+          balls.innerHTML = `<span class="fase-badge-won flash" title="Fez ${NOME[w.phase]}">✓ ${NOME[w.phase].toUpperCase()}</span>`;
+          setTimeout(() => {
+            if (balls.querySelector('.fase-badge-won')) {
+              balls.innerHTML = ''; // será preenchido no próximo state
+            }
+          }, 3500); // tempo da animação do overlay
+        }
+      }
+    });
+  }
 });
 
 socket.on('jackpot', (j) => {

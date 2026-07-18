@@ -116,26 +116,9 @@ function renderState(s) {
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
     document.getElementById('fasePainel').textContent = '— ' + NOME[faseAtual];
 
-    // ===== Seção "Já venceram": quem fechou fases anteriores (com badge da fase) =====
-    for (const phase of PHASE_SEQUENCE) {
-      const w = s.winners && s.winners[phase];
-      if (!w || !w.vencedores || !w.vencedores.length) continue;
-      w.vencedores.forEach((v) => {
-        const isMe = v.cpf === meuCpf;
-        const row = document.createElement('div');
-        row.className = 'player-row done-row' + (isMe ? ' me' : '');
-        row.innerHTML = `
-          <span class="prank">🏆</span>
-          <span class="pcode">${isMe ? '★' : ''}</span>
-          <span class="player-name">${v.name}</span>
-          <div class="pballs"><span class="fase-badge-won" title="Fez ${NOME[phase]}">✓ ${NOME[phase].toUpperCase()}</span></div>`;
-        playersContainer.appendChild(row);
-      });
-    }
-
     // ===== Lista da fase atual (quem está perto) =====
     const lista = ((s.ranking && s.ranking[faseAtual]) || []).slice();
-    if (lista.length === 0 && playersContainer.children.length === 0) {
+    if (lista.length === 0) {
       const vazio = document.createElement('div');
       vazio.className = 'pphase-empty';
       vazio.textContent = 'Aguardando cartelas...';
@@ -152,6 +135,8 @@ function renderState(s) {
         }
         const row = document.createElement('div');
         row.className = 'player-row' + (isMe ? ' me' : '') + (item.done ? ' done-row' : '');
+        row.dataset.owner = item.owner;
+        row.dataset.cardId = item.cardId;
         row.innerHTML = `
           <span class="prank">${i + 1}</span>
           <span class="pcode">${isMe ? '★' : ''}#${item.cardId}</span>
