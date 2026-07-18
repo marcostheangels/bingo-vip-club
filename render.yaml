@@ -8,3 +8,9 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 22
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DRAW_INTERVAL
+        value: 3000
+      - key: INTERMISSION
+        value: 60000
