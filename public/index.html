@@ -73,14 +73,14 @@
             </div>
 
             <!-- 5. BOLA + PAINEL DA FASE -->
-            <div class="game-display">
+            <div class="game-display" data-src="ui.js|style.css">
                 <div class="countdown-overlay" id="countdownOverlay">
                     <div class="countdown-label">PRÓXIMA PARTIDA EM</div>
                     <div class="countdown-time" id="countdownTime">60</div>
                     <div class="countdown-hint">🎟️ Compre suas cartelas agora!</div>
                 </div>
                 <div class="main-ball" id="mainBall">--</div>
-                <div class="phase-panel" id="phasePanel">
+                <div class="phase-panel" id="phasePanel" data-src="style.css|ui.js">
                     <div class="phase-eyebrow">FASE EM DISPUTA</div>
                     <div class="phase-name" id="phaseName">KUADRA</div>
                     <div class="phase-sub" id="phaseSub">4 números em uma linha</div>
@@ -94,7 +94,7 @@
             </div>
 
             <!-- 6. MAPA DE 90 BOLAS -->
-            <div class="balls-board">
+            <div class="balls-board" data-src="style.css|ui.js">
                 <div class="balls-grid" id="board-grid"></div>
             </div>
         </div>
@@ -102,10 +102,10 @@
         <!-- 7. PAINEL LATERAL DIREITO -->
         <div class="right-panel">
             <div class="panel-title-right">🏆 Quem está perto de ganhar <span id="fasePainel"></span></div>
-            <div class="players-container" id="players-list"></div>
+            <div class="players-container" id="players-list" data-src="ui.js|style.css"></div>
 
             <!-- PAINEL DE COMPRA DE CARTELAS -->
-            <div class="buy-panel" id="buyPanel">
+            <div class="buy-panel" id="buyPanel" data-src="ui.js|style.css">
                 <div class="buy-title">🎟️ Comprar Cartelas <span class="buy-badge" id="buyBadge">ABERTO • 60s</span></div>
                 <div class="qty-row" id="qtyRow">
                     <button class="qbtn" data-q="5">5</button>
@@ -131,7 +131,7 @@
                 </div>
             </div>
 
-            <div class="cards-bar">
+            <div class="cards-bar" data-src="ui.js|style.css">
                 <strong style="font-size:16px">Cartelas: <span id="cartCount">0</span></strong>
                 <div class="cards-bar-actions">
                     <button class="fase-tag" data-f="kuadra">Kuadra</button>
@@ -142,7 +142,7 @@
             </div>
 
             <!-- CARTELAS COMPRADAS -->
-            <div class="my-cards" id="myCards">
+            <div class="my-cards" id="myCards" data-src="cards.js|style.css">
                 <div class="my-cards-title">
                     📋 Minhas Cartelas Compradas
                     <span class="zoom-ctrl">
@@ -177,5 +177,17 @@
     <script src="/js/cards.js"></script>
     <script src="/js/socket-client.js"></script>
     <script src="/js/main.js"></script>
+
+    <!-- Modal de inspeção de código (clique no painel) -->
+    <div class="src-modal" id="srcModal">
+        <div class="src-box">
+            <div class="src-head">
+                <span id="srcTitle">Código</span>
+                <button class="src-close" id="srcClose">✕</button>
+            </div>
+            <div class="src-filetabs" id="srcTabs"></div>
+            <pre class="src-code" id="srcCode"></pre>
+        </div>
+    </div>
 </body>
 </html>

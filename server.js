@@ -19,6 +19,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 auth.registerRoutes(app);
 
+// Inspeção de código-fonte dos painéis (apenas arquivos da whitelist).
+const SOURCE_WHITELIST = {
+  'ui.js': path.join(__dirname, 'public', 'js', 'ui.js'),
+  'cards.js': path.join(__dirname, 'public', 'js', 'cards.js'),
+  'socket-client.js': path.join(__dirname, 'public', 'js', 'socket-client.js'),
+  'main.js': path.join(__dirname, 'public', 'js', 'main.js'),
+  'util.js': path.join(__dirname, 'public', 'js', 'util.js'),
+  'audio.js': path.join(__dirname, 'public', 'js', 'audio.js'),
+  'style.css': path.join(__dirname, 'public', 'css', 'style.css'),
+  'index.html': path.join(__dirname, 'public', 'index.html'),
+};
+app.get('/api/source', (req, res) => {
+  const file = req.query.file;
+  const fp = SOURCE_WHITELIST[file];
+  if (!fp) return res.status(400).json({ error: 'arquivo nao permitido' });
+  try {
+    const content = require('fs').readFileSync(fp, 'utf8');
+    res.type('text/plain').send(content);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Estado atual (apenas com TEST=1) para inspecao/debug
 if (process.env.TEST) {
   app.get('/api/state', (req, res) => res.json(round.publicState()));

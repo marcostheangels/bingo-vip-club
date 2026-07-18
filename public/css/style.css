@@ -477,6 +477,30 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .coin { position: fixed; top: -40px; pointer-events: none; z-index: 10001; animation: coinFall linear forwards; }
 @keyframes coinFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
 
+/* ===== Modal de inspeção de código (clique no painel) ===== */
+.src-modal {
+    position: fixed; inset: 0; z-index: 10002; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,.72); backdrop-filter: blur(6px);
+}
+.src-modal.show { display: flex; }
+.src-box {
+    width: min(900px, 94vw); max-height: 86vh; display: flex; flex-direction: column;
+    background: #0c1030; border: 1px solid rgba(139,92,255,.4); border-radius: 16px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 50px rgba(139,92,255,.25); overflow: hidden;
+}
+.src-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(160deg, #1d2a5e, #0c1230); border-bottom: 1px solid rgba(255,255,255,.1); }
+.src-head #srcTitle { font-weight: 800; font-size: 14px; color: var(--yellow); letter-spacing: .3px; }
+.src-close { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); color: #fff; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; }
+.src-close:hover { background: var(--red); }
+.src-filetabs { display: flex; gap: 6px; padding: 8px 12px 0; flex-wrap: wrap; }
+.src-tab { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: var(--muted); padding: 5px 12px; border-radius: 8px 8px 0 0; font-size: 12px; font-weight: 700; cursor: pointer; }
+.src-tab.active { background: #161c44; color: #fff; border-color: rgba(139,92,255,.5); }
+.src-code { margin: 0; padding: 14px 16px; overflow: auto; flex: 1; background: #070a22; color: #cbd5ff; font-family: 'Consolas','Monaco',monospace; font-size: 12px; line-height: 1.5; white-space: pre; }
+.src-code .ln { color: #4b5278; user-select: none; display: inline-block; width: 34px; text-align: right; margin-right: 12px; }
+.painel-inspecionavel { cursor: pointer; }
+.painel-inspecionavel:hover { outline: 2px dashed rgba(139,92,255,.5); }
+
 /* ===== RESPONSIVO: telas estreitas ===== */
 @media (max-width: 1240px) {
     .right-panel { width: 360px; }
