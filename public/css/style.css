@@ -18,7 +18,7 @@ body {
     height: 100vh;
     overflow: hidden;
     overflow-x: hidden;
-    padding: 56px 15px 15px;
+    padding: 52px 15px 12px;
     display: flex;
     flex-direction: column;
 }
@@ -63,16 +63,16 @@ body {
 /* ===== 1. TOPO / NAVBAR ===== */
 header {
     position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;
-    height: 85px; padding: 0 18px; border-radius: 14px; margin-bottom: 15px;
+    height: 70px; padding: 0 18px; border-radius: 14px; margin-bottom: 12px;
     background: linear-gradient(160deg, rgba(20, 26, 62, 0.8), rgba(8, 10, 32, 0.7));
     border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow: 0 14px 50px rgba(139, 92, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.10);
     flex: 0 0 auto;
 }
 .logo-area { display: flex; align-items: center; gap: 12px; }
-.logo-img { height: 55px; width: auto; border-radius: 10px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
+.logo-img { height: 46px; width: auto; border-radius: 10px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); }
 .logo-text {
-    font-weight: 800; font-size: 32px; letter-spacing: 2px;
+    font-weight: 800; font-size: 26px; letter-spacing: 2px;
     background: linear-gradient(180deg, #E8C87A 0%, #B8860B 50%, #8a6304 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, .7), 0 0 14px rgba(184, 134, 11, .35);
@@ -124,14 +124,14 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 }
 .ordem-box > span { font-size: 13px; letter-spacing: 1px; color: #fff; text-transform: uppercase; }
 .acumulado-count {
-    font-size: 64px; font-weight: 800; color: var(--yellow); line-height: 1;
+    font-size: clamp(40px, 5vw, 64px); font-weight: 800; color: var(--yellow); line-height: 1;
     text-shadow: 0 0 12px rgba(255,215,0,.6);
-    margin: 6px 0 2px 0;
+    margin: 4px 0 2px 0;
 }
 .acumulado-legenda { font-size: 11px; color: rgba(255,255,255,.85); text-transform: uppercase; letter-spacing: 1px; }
 
 /* AREA CENTRAL */
-.center-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
+.center-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 15px; }
 
 /* 4. PREMIOS */
 .prizes-row { display: flex; gap: 15px; flex: 0 0 auto; }
@@ -154,14 +154,14 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 
 /* 5. AREA DO SORTEIO CENTRALIZADO */
 .game-display {
-    flex: 1; display: flex; align-items: stretch; justify-content: flex-start; gap: 28px;
-    position: relative; padding: 20px; min-height: 300px;
+    flex: 1 1 auto; display: flex; align-items: center; justify-content: flex-start; gap: 28px;
+    position: relative; padding: clamp(12px, 2vw, 20px); min-height: 0;
     background: rgba(255, 255, 255, 0.02); border-radius: 16px;
 }
 .main-ball {
-    width: 260px; height: 260px; border-radius: 50%; flex-shrink: 0; align-self: center;
+    width: clamp(150px, 22vw, 260px); height: clamp(150px, 22vw, 260px); border-radius: 50%; flex-shrink: 0; align-self: center;
     display: flex; align-items: center; justify-content: center;
-    font-size: 130px; font-weight: 800; color: #0b3d1a; position: relative;
+    font-size: clamp(70px, 10vw, 130px); font-weight: 800; color: #0b3d1a; position: relative;
     background: radial-gradient(circle at 32% 28%, #fff 0%, #34e89e 38%, #0e7a52 100%);
     box-shadow: 0 16px 35px rgba(52, 232, 158, .4), inset 0 -10px 20px rgba(0, 0, 0, .35);
     animation: ballPop .4s ease;
@@ -196,11 +196,12 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* ===== Painel da Fase ===== */
 .phase-panel {
     --pc: #8b5cf6;
-    flex: 1; align-self: center; text-align: center;
+    flex: 1 1 auto; align-self: center; text-align: center; min-width: 0;
     background: linear-gradient(160deg, rgba(139,92,255,.16), rgba(255,255,255,.03));
-    border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 26px 24px;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: clamp(14px, 2vw, 26px) clamp(12px, 2vw, 24px);
     box-shadow: 0 0 40px rgba(139,92,255,.18), inset 0 0 30px rgba(139,92,255,.06);
     position: relative; overflow: hidden;
+    max-height: 100%;
 }
 .phase-panel::before {
     content: ''; position: absolute; inset: 0; border-radius: 20px; padding: 2px;
@@ -210,19 +211,19 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 }
 .phase-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 3px; color: var(--pc); text-transform: uppercase; }
 .phase-name {
-    font-size: 3.4em; font-weight: 900; letter-spacing: 4px; line-height: 1.05; margin: 4px 0 2px;
+    font-size: clamp(1.8em, 4vw, 3.4em); font-weight: 900; letter-spacing: 4px; line-height: 1.05; margin: 4px 0 2px;
     background: linear-gradient(135deg, #fff, var(--pc)); -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent; text-shadow: 0 0 30px rgba(139,92,255,.25);
 }
-.phase-sub { font-size: 1.05em; font-weight: 600; color: var(--muted); margin-bottom: 10px; }
+.phase-sub { font-size: clamp(.85em, 1.4vw, 1.05em); font-weight: 600; color: var(--muted); margin-bottom: 10px; }
 .phase-prize {
-    display: inline-block; font-size: 2.2em; font-weight: 900; padding: 6px 22px; border-radius: 14px;
+    display: inline-block; font-size: clamp(1.3em, 2.6vw, 2.2em); font-weight: 900; padding: 6px 22px; border-radius: 14px;
     color: #06203f; background: linear-gradient(135deg, #34e89e, #22d3ee);
     box-shadow: 0 8px 24px rgba(52,232,158,.35);
 }
-.phase-stats { display: flex; justify-content: center; gap: 36px; margin: 20px 0 16px; }
+.phase-stats { display: flex; justify-content: center; gap: clamp(18px, 4vw, 36px); margin: 16px 0 12px; flex-wrap: wrap; }
 .pstat { display: flex; flex-direction: column; align-items: center; }
-.pstat-val { font-size: 1.9em; font-weight: 900; color: #fff; }
+.pstat-val { font-size: clamp(1.3em, 2.4vw, 1.9em); font-weight: 900; color: #fff; }
 .pstat-lbl { font-size: .72em; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
 .phase-progress { display: flex; justify-content: center; gap: 14px; margin-top: 4px; }
 .pp-step { display: flex; flex-direction: column; align-items: center; gap: 5px; opacity: .45; transition: all .3s; filter: grayscale(.7); }
@@ -245,9 +246,9 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* ===== 6. MAPA 90 BOLAS RE-ALINHADO ===== */
 .balls-board {
     background: linear-gradient(160deg, rgba(20, 28, 66, .75), rgba(8, 12, 38, .75));
-    border-radius: 16px; padding: 12px; flex: 0 0 auto; height: 150px;
+    border-radius: 16px; padding: 12px; flex: 0 0 auto; height: clamp(96px, 13vh, 150px);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    overflow: hidden;
+    overflow: hidden; width: 100%;
 }
 .balls-grid {
     display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); grid-template-rows: repeat(3, 1fr);
@@ -473,3 +474,20 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 @keyframes valuePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
 .coin { position: fixed; top: -40px; pointer-events: none; z-index: 10001; animation: coinFall linear forwards; }
 @keyframes coinFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+/* ===== RESPONSIVO: telas estreitas ===== */
+@media (max-width: 1240px) {
+    .right-panel { width: 360px; }
+    .info-column { width: 168px; }
+}
+@media (max-width: 1024px) {
+    .right-panel { width: 320px; }
+    .info-column { width: 150px; }
+    .logo-text { font-size: 20px; }
+}
+@media (max-width: 860px) {
+    .main-container { flex-direction: column; overflow-y: auto; }
+    body { overflow-y: auto; }
+    .right-panel, .info-column { width: 100%; flex: none; }
+    .game-display { min-height: 240px; }
+}
