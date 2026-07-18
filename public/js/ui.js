@@ -14,10 +14,8 @@ function updateStatusBanner(s) {
     if (s.drawnBalls.length === 0) {
       ico = '🚀'; txt = `Partida iniciada! Sorteio #${s.sorteio} — boa sorte!`; cls = 'show go';
     } else {
-      const fase = NOME[PHASE_SEQUENCE[s.phaseIndex]] || 'Kuadra';
-      ico = '🎲';
-      txt = `Sorteio #${s.sorteio} — bola ${s.drawnBalls.length} de 90 • ${fase} em disputa`;
-      cls = 'show info';
+      // Faixa de sorteio oculta por pedido (não exibe "Sorteio #... bola X de 90").
+      ico = ''; txt = ''; cls = '';
     }
   } else if (s.status === 'finished') {
     ico = '🏁'; txt = `Sorteio #${s.sorteio} encerrado!`; cls = 'show';
