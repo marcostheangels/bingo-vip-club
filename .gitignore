@@ -20,3 +20,6 @@ test_*.js
 
 # Dados de usuarios (nao subir para o git)
 users.json
+
+# Backup local (zip)
+BINGO2026_BACKUP*.zip
