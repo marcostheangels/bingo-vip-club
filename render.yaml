@@ -16,3 +16,5 @@ services:
         value: 60000
       - key: BOTS
         value: "1"
+      - key: DATABASE_URL
+        sync: false

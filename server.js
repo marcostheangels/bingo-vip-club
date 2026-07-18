@@ -74,10 +74,13 @@ if (process.env.TEST) {
 
 socket.init(server);
 
-// Inicia a primeira rodada.
-round.comecarRodada();
+// Inicia a primeira rodada após carregar os usuários (PostgreSQL ou arquivo).
+(async function boot() {
+  await db.initDB();
+  round.comecarRodada();
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Bingo VIP Club rodando em http://localhost:${PORT}`);
-});
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`Bingo VIP Club rodando em http://localhost:${PORT}`);
+  });
+})();
