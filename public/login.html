@@ -11,7 +11,10 @@
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
   body{
     background:linear-gradient(180deg,#05052e 0%,#04042a 100%);color:var(--text);
-    min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:20px;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;
+  }
+  @media (max-height:720px){
+    body{align-items:flex-start;padding-top:24px;padding-bottom:24px;}
   }
   .orb{position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;z-index:0;pointer-events:none;}
   .orb.a{width:360px;height:360px;background:#8b5cff;top:-100px;right:-70px;}
