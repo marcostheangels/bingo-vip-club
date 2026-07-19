@@ -139,15 +139,15 @@ function renderState(s) {
         const faltantes = item.faltantes || [];
         let balls;
         if (item.done) {
-          balls = `<span class="fase-badge-won" title="Fez ${NOME[faseAtual]}">✓ ${NOME[faseAtual].toUpperCase()}</span>`;
+          balls = `<span class="fase-badge-won f-${faseAtual}" title="Fez ${NOME[faseAtual]}">✓ ${NOME[faseAtual].toUpperCase()}</span>`;
         } else {
           balls = faltantes.map((n) => `<span class="pballmini" title="${n}">${n}</span>`).join('');
         }
         // Badges de fases ja ganhas por este jogador (fixos no nome).
         const ganhou = (window.__playersGanhou && window.__playersGanhou[item.owner]) || [];
-        const badgesGanhou = ganhou.map((ph) => `<span class="fase-badge-won sm" title="Fez ${NOME[ph]}">✓ ${NOME[ph].toUpperCase()}</span>`).join(' ');
+        const badgesGanhou = ganhou.map((ph) => `<span class="fase-badge-won sm f-${ph}" title="Fez ${NOME[ph]}">✓ ${NOME[ph].toUpperCase()}</span>`).join(' ');
         const row = document.createElement('div');
-        row.className = 'player-row' + (isMe ? ' me' : '') + (item.done ? ' done-row' : '');
+        row.className = 'player-row' + (isMe ? ' me' : '') + (item.done ? ' done-row f-' + faseAtual : '');
         row.dataset.owner = item.owner;
         row.dataset.cardId = item.cardId;
         row.innerHTML = `
