@@ -52,7 +52,17 @@ function init(server) {
     socket.on('connect', emitirEstado);
 
     socket.on('comprar', (qtd, cb) => {
+      // Limite rígido por compra (não confia no cliente).
       qtd = Math.max(1, Math.min(200, parseInt(qtd) || 1));
+      // Limite total de cartelas do jogador nesta rodada (evita travar o servidor
+      // com milhares de cartelas de uma vez).
+      const MAX_CARTAS_POR_JOGADOR = 300;
+      let minhas = 0;
+      for (const c of core.roundCards.values()) if (c.owner === owner) minhas++;
+      if (minhas + qtd > MAX_CARTAS_POR_JOGADOR) {
+        qtd = Math.max(0, MAX_CARTAS_POR_JOGADOR - minhas);
+        if (qtd <= 0) return cb && cb({ error: `Limite de ${MAX_CARTAS_POR_JOGADOR} cartelas por rodada atingido.` });
+      }
       const custo = qtd * game.CARD_COST;
       if (core.state.status === 'running') {
         return cb && cb({ error: 'Aguarde o intervalo para comprar cartelas.' });

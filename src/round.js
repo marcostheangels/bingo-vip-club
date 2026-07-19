@@ -178,6 +178,11 @@ function publicState() {
   if (phaseIndex === -1) phaseIndex = game.PHASE_SEQUENCE.length - 1;
   const phaseAtual = game.PHASE_SEQUENCE[phaseIndex];
 
+  // Set de bolas sorteadas calculado UMA vez (evaluateCard/missingForPhase
+  // refazem o Set internamente, mas evitamos trabalho redundante agrupando).
+  const drawnSet = new Set(core.state.drawnBalls.map(Number));
+  const total = core.roundCards.size;
+
   for (const [owner, cards] of porOwner) {
     const u = db.users.get(owner);
     let melhorFalta = 99;
@@ -202,22 +207,28 @@ function publicState() {
   // (a cartela dele mais próxima de ganhar), em ordem crescente de quem falta menos bolas.
   // Quem JÁ fez a fase aparece no topo, marcado com done:true (número vazio, "✓ FASE").
   const rankingPorFase = {};
+  // Com muitas cartelas, limitamos o processamento do ranking para não travar o
+  // servidor (o ranking é apenas informativo). Cap de 1500 cartelas avaliadas.
+  const limite = Math.min(total, 1500);
+  let avaliadas = 0;
   for (const phase of game.PHASE_SEQUENCE) {
-    const porOwner = new Map();
+    const porOwnerMap = new Map();
     for (const c of core.roundCards.values()) {
+      if (avaliadas >= limite) break;
+      avaliadas++;
       if (!c || !c.card) continue;
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
       const fase = ev[phase];
       const faltantes = game.missingForPhase(c.card, core.state.drawnBalls, phase);
-      const atual = porOwner.get(c.owner);
+      const atual = porOwnerMap.get(c.owner);
       // mantém a cartela com menor falta (desempate: menor id); se já fez, falta=0
       const faltaRank = fase.done ? 0 : fase.falta;
       if (!atual || faltaRank < atual.faltaRank || (faltaRank === atual.faltaRank && c.id < atual.cardId)) {
-        porOwner.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: !!fase.done, faltantes });
+        porOwnerMap.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: !!fase.done, faltantes });
       }
     }
     const lista = [];
-    for (const [owner, melhor] of porOwner) {
+    for (const [owner, melhor] of porOwnerMap) {
       const u = db.users.get(owner);
       lista.push({
         cardId: melhor.cardId,
@@ -254,7 +265,14 @@ function publicState() {
 }
 
 function broadcastState() {
-  io.emit('state', publicState());
+  // Evita travar o event loop: com poucas cartelas emite na hora; com muitas,
+  // adia o broadcast para a próxima iteração do loop de eventos.
+  const total = core.roundCards.size;
+  if (total > 800) {
+    setImmediate(() => { io.emit('state', publicState()); });
+  } else {
+    io.emit('state', publicState());
+  }
   saveSnapshot();
 }
 
