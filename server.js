@@ -15,6 +15,16 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
+// Anti-cache para assets (js/css/html) — garante que o navegador sempre baixe
+// a versão mais recente, evitando o bug de "só funciona após F5".
+app.use((req, res, next) => {
+  if (/\.(js|css|html?)$/.test(req.path)) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 auth.registerRoutes(app);
