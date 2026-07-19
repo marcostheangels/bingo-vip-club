@@ -219,6 +219,7 @@ function updateCountdown() {
   if (badge) badge.textContent = `ABERTO • ${secs}s`;
 }
 setInterval(updateCountdown, 250);
+console.log('[bingo] ui.js carregado — CLIENT_VER=' + (window.CLIENT_VER || '?'));
 
 // ===== Vencedor popup =====
 function showWinOverlay(w) {
@@ -353,6 +354,18 @@ function zoom(delta) {
   cardW = Math.max(150, Math.min(300, cardW + delta * 20));
   const grid = document.getElementById('myCardsGrid');
   if (grid) grid.style.setProperty('--cardw', cardW + 'px');
+}
+// Listeners em JS como backup dos botões (garante funcionamento mesmo se o
+// handler inline não resolver o escopo da função).
+function initZoomButtons() {
+  const menos = document.querySelector('.zoom-ctrl .btn-ctrl:not(.yellow)');
+  const mais = document.querySelector('.zoom-ctrl .btn-ctrl.yellow');
+  if (menos) menos.addEventListener('click', () => zoom(-1));
+  if (mais) mais.addEventListener('click', () => zoom(1));
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initZoomButtons);
+  else initZoomButtons();
 }
 
 // ===== Relógio =====

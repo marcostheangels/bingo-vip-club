@@ -1,5 +1,5 @@
 // ===== Utilitários e constantes compartilhadas =====
-const CLIENT_VER = 'v4-modular';
+const CLIENT_VER = 'v4-modular-fix3';
 const token = localStorage.getItem('bingo_session_token');
 const meuCpf = localStorage.getItem('bingo_meu_cpf') || '';
 
