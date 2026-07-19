@@ -3,16 +3,16 @@ const core = require('./game-core');
 
 // ===== Bots de teste (apenas com BOTS=1) =====
 const BOT_DEFS = [
-  { cpf: '11111111111', nome: 'Robo Ana' },
-  { cpf: '22222222222', nome: 'Robo Beto' },
-  { cpf: '33333333333', nome: 'Robo Caio' },
-  { cpf: '44444444444', nome: 'Robo Duda' },
-  { cpf: '55555555555', nome: 'Robo Eva' },
-  { cpf: '66666666666', nome: 'Robo Fe' },
-  { cpf: '77777777777', nome: 'Robo Gus' },
-  { cpf: '88888888888', nome: 'Robo Lia' },
-  { cpf: '99999999999', nome: 'Robo Max' },
-  { cpf: '12121212121', nome: 'Robo Nico' },
+  { cpf: '11111111111', nome: 'Ana Lima' },
+  { cpf: '22222222222', nome: 'Beto Souza' },
+  { cpf: '33333333333', nome: 'Caio Ferreira' },
+  { cpf: '44444444444', nome: 'Duda Martins' },
+  { cpf: '55555555555', nome: 'Eva Cardoso' },
+  { cpf: '66666666666', nome: 'Felipe Rocha' },
+  { cpf: '77777777777', nome: 'Gustavo Dias' },
+  { cpf: '88888888888', nome: 'Lia Pereira' },
+  { cpf: '99999999999', nome: 'Marcos Alves' },
+  { cpf: '12121212121', nome: 'Nicole Castro' },
 ];
 
 function garantirBots(users) {

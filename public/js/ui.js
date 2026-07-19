@@ -99,10 +99,11 @@ function renderState(s) {
   updateStatusBanner(s);
   // Mapa 90 bolas
   const emIntermission = s.status === 'intermission';
+  const emFinished = s.status === 'finished';
   gridElement.querySelectorAll('.grid-cell').forEach((cell) => {
     const n = +cell.dataset.num;
     cell.className = 'grid-cell';
-    if (emIntermission) return; // nova rodada: garante mapa limpo
+    if (emIntermission || emFinished) return; // nova rodada / encerrada: garante mapa limpo
     if (n === s.currentBall) cell.classList.add('current');
     else if (s.drawnBalls.includes(n)) cell.classList.add('drawn', faixaGrid(n));
   });
@@ -197,13 +198,16 @@ function renderState(s) {
 
 function updateCountdown() {
   const overlay = document.getElementById('countdownOverlay');
-  if (!gameState || gameState.status !== 'intermission' || !gameState.startsAt) {
+  // Usa o último estado recebido do servidor (window.__lastState) em vez da
+  // variável gameState local, que pertence a outro escopo de script e ficava
+  // indefinida aqui — o que travava o contador em 60s.
+  const st = window.__lastState;
+  if (!st || st.status !== 'intermission' || !st.startsAt) {
     overlay.classList.remove('show');
     return;
   }
   overlay.classList.add('show');
-  const secs = Math.max(0, Math.ceil((gameState.startsAt - Date.now()) / 1000));
-  const banner = document.getElementById('statusBanner');
+  const secs = Math.max(0, Math.ceil((st.startsAt - Date.now()) / 1000));
   const timeEl = document.getElementById('countdownTime');
   const badge = document.getElementById('buyBadge');
   document.getElementById('statusIco').textContent = '';
