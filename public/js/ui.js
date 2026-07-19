@@ -355,9 +355,9 @@ function comprarCartelas() {
   });
 }
 
-// ===== Zoom cartelas (apenas 2 niveis: 1x = 110px, 2x = 200px) =====
-const ZOOM_NIVEIS = [110, 200];
-let zoomNivel = 1; // indice em ZOOM_NIVEIS (0 = 1x, 1 = 2x)
+// ===== Zoom cartelas (apenas 2 niveis: 1x = 90px, 2x = 140px) =====
+const ZOOM_NIVEIS = [90, 140];
+let zoomNivel = 0; // indice em ZOOM_NIVEIS (0 = 1x, 1 = 2x) - comeca no 1x
 let cardW = ZOOM_NIVEIS[zoomNivel];
 function aplicarZoom() {
   cardW = ZOOM_NIVEIS[zoomNivel];
