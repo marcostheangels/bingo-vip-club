@@ -355,12 +355,18 @@ function comprarCartelas() {
   });
 }
 
-// ===== Zoom cartelas =====
-let cardW = 200;
-function zoom(delta) {
-  cardW = Math.max(110, Math.min(220, cardW + delta * 20));
+// ===== Zoom cartelas (apenas 2 niveis: 1x = 110px, 2x = 200px) =====
+const ZOOM_NIVEIS = [110, 200];
+let zoomNivel = 1; // indice em ZOOM_NIVEIS (0 = 1x, 1 = 2x)
+let cardW = ZOOM_NIVEIS[zoomNivel];
+function aplicarZoom() {
+  cardW = ZOOM_NIVEIS[zoomNivel];
   const grid = document.getElementById('myCardsGrid');
   if (grid) grid.style.setProperty('--cardw', cardW + 'px');
+}
+function zoom(delta) {
+  zoomNivel = Math.max(0, Math.min(ZOOM_NIVEIS.length - 1, zoomNivel + delta));
+  aplicarZoom();
 }
 // Listeners em JS como backup dos botões (garante funcionamento mesmo se o
 // handler inline não resolver o escopo da função).
