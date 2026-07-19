@@ -161,22 +161,22 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .info-column { display: flex; flex-direction: column; gap: 15px; width: var(--info-col-width); flex: 0 0 var(--info-col-width); min-width: var(--info-col-min); }
 .info-card {
     background: var(--box-blue); border: 2px solid rgba(255, 255, 255, 0.12); border-radius: var(--radius-card);
-    padding: var(--info-card-pad); text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 12px 10px; text-align: center; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .info-card.dark-blue { background: linear-gradient(160deg, #1d2a5e, #0c1230); }
 .info-card span { display: block; font-size: 12px; color: var(--yellow); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-.info-card strong { font-size: var(--info-font); font-weight: 700; }
+.info-card strong { font-size: 20px; font-weight: 700; }
 
 .ordem-box {
-    background: var(--red); border-radius: var(--radius-card); padding: 12px; flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 10px; font-weight: 700; border: 2px solid #ffb3c1;
+    background: var(--red); border-radius: var(--radius-card); padding: 12px 10px; flex: 0 0 auto; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px; font-weight: 700; border: 2px solid #ffb3c1;
     box-shadow: 0 8px 24px rgba(255, 59, 92, .3); overflow: hidden;
 }
 .ordem-box > span { font-size: 13px; letter-spacing: 1px; color: #fff; text-transform: uppercase; }
 .acumulado-count {
-    font-size: clamp(40px, 5vw, 64px); font-weight: 800; color: var(--yellow); line-height: 1;
+    font-size: clamp(26px, 3vw, 34px); font-weight: 800; color: var(--yellow); line-height: 1;
     text-shadow: 0 0 12px rgba(255,215,0,.6);
-    margin: 4px 0 2px 0;
+    margin: 2px 0;
 }
 .acumulado-legenda { font-size: 11px; color: rgba(255,255,255,.85); text-transform: uppercase; letter-spacing: 1px; }
 
