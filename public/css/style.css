@@ -204,13 +204,12 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 
 /* 5. AREA DO SORTEIO CENTRALIZADO */
 .game-display {
-    flex: 1 1 auto; display: flex; align-items: stretch; justify-content: flex-start; gap: 28px;
+    flex: 1 1 auto; display: flex; align-items: center; justify-content: flex-start; gap: 28px;
     position: relative; padding: clamp(12px, 2vw, 20px); min-height: 0;
     background: rgba(255, 255, 255, 0.02); border-radius: 16px;
 }
 .game-left {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-    flex: 1 1 0; min-width: 0;
+    display: flex; flex: 0 0 auto; min-width: 0;
 }
 .main-ball {
     width: clamp(150px, 22vw, 260px); height: clamp(150px, 22vw, 260px); border-radius: 50%; flex-shrink: 0; align-self: center;
@@ -249,6 +248,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .countdown-hint { font-size: 14px; font-weight: 600; color: var(--neon-2); text-shadow: 0 0 10px rgba(34,211,238,.4); }
 /* ===== Painel da Fase ===== */
 .phase-panel {
+    display: none; /* painel Fase em Disputa oculto por solicitacao */
     --pc: #8b5cf6;
     flex: 1 1 auto; align-self: center; text-align: center; min-width: 0;
     background: linear-gradient(160deg, rgba(139,92,255,.16), rgba(255,255,255,.03));
@@ -352,7 +352,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* ===== 6. MAPA 90 BOLAS (area central, abaixo do sorteio) ===== */
 .balls-board {
     background: linear-gradient(160deg, rgba(20, 28, 66, .75), rgba(8, 12, 38, .75));
-    border-radius: 16px; padding: 12px; flex: 1 1 0; min-width: 0;
+    border-radius: 16px; padding: 12px; flex: 1 1 auto; min-width: 0; align-self: center;
     border: 1px solid rgba(255, 255, 255, 0.12);
     overflow: hidden; display: flex; flex-direction: column; gap: 6px;
 }
@@ -361,16 +361,16 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
     text-transform: uppercase; text-align: center; flex-shrink: 0;
 }
 .balls-grid {
-    display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); grid-template-rows: repeat(3, 1fr);
-    gap: 2px; flex: 1 1 auto; min-width: 0; min-height: 0;
+    display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); grid-template-rows: repeat(9, minmax(0, 1fr));
+    gap: 4px; flex: 1 1 auto; min-width: 0; min-height: 0;
 }
 .grid-cell {
-    font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.20);
+    font-size: clamp(9px, 1.1vw, 13px); font-weight: 700; color: rgba(255,255,255,0.20);
     display: flex; align-items: center; justify-content: center;
-    width: 100%; aspect-ratio: 1; border-radius: 50%;
+    border-radius: 8px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.04); transition: all .2s ease;
-    min-width: 0;
+    min-width: 0; min-height: 0;
 }
 .grid-cell.drawn { color: #06203f; background: radial-gradient(circle at 32% 28%, #fff 0%, #4aa3ff 42%, #0a4a8f 100%); box-shadow: 0 0 8px rgba(74, 163, 255, .5); }
 .grid-cell.drawn.f2 { background: radial-gradient(circle at 32% 28%, #fff 0%, #ffd83d 42%, #c79a00 100%); color: #4a3700; box-shadow: 0 0 8px rgba(255, 216, 61, .5); }
