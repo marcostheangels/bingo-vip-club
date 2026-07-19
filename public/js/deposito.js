@@ -1,6 +1,6 @@
 // ===== Depósito via PIX (QR Code copia-e-cola) =====
 (function () {
-  const PIX_KEY = '38998551336'; // chave PIX do administrador (recebe os depósitos)
+  const PIX_KEY = '+5538998551336'; // chave PIX do administrador (telefone, com +55 conforme padrão Bacen)
   const PIX_NOME = 'MARCOS THE ANGELS';
   const PIX_CIDADE = 'BRASIL';
 
