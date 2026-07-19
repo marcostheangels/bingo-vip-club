@@ -6,6 +6,7 @@ const config = require('./src/config');
 const db = require('./src/db');
 const auth = require('./src/auth');
 const socket = require('./src/socket');
+const bots = require('./src/bots');
 const round = require('./src/round');
 const core = require('./src/game-core');
 
