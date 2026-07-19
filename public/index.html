@@ -52,13 +52,6 @@
     <!-- LAYOUT PRINCIPAL -->
     <div class="main-container">
 
-        <!-- 3. COLUNA DE INFOS -->
-        <div class="info-column">
-            <div class="info-card dark-blue"><span>Sorteio</span><strong id="sorteioId">#000000</strong></div>
-            <div class="info-card"><span>Hora</span><strong id="live-clock">00:00:00</strong></div>
-            <div class="info-card"><span>Doação</span><strong id="doacaoVal">R$ 0,15</strong></div>
-        </div>
-
         <!-- AREA CENTRAL -->
         <div class="center-content">
             <!-- 4. PRÊMIOS -->
@@ -66,6 +59,7 @@
                 <div class="prize-card"><span>Kuadra</span><strong id="prizeKuadra">R$20,00</strong></div>
                 <div class="prize-card"><span>Kina</span><strong id="prizeKina">R$30,00</strong></div>
                 <div class="prize-card"><span>Keno</span><strong id="prizeKeno">R$100,00</strong></div>
+                <div class="prize-card" id="sorteioCard"><span>Sorteio</span><strong id="sorteioId">#000000</strong></div>
                 <div class="prize-card acumulado" id="acCard">
                     <div class="badge-acumulado" id="acBadge">35</div>
                     <span>Acumulado</span><strong id="prizeAcumulado">R$1.000,00</strong>
@@ -82,6 +76,7 @@
                 </div>
                 <div class="game-left">
                     <div class="main-ball" id="mainBall">--</div>
+                    <div class="info-card hora-center"><span>Hora</span><strong id="live-clock">00:00:00</strong></div>
                     <div class="phase-panel" id="phasePanel" data-src="style.css|ui.js">
                         <div class="phase-eyebrow">FASE EM DISPUTA</div>
                         <div class="phase-name" id="phaseName">KUADRA</div>
