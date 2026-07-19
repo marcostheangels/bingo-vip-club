@@ -85,6 +85,7 @@
   <div class="nav-btn" data-tab="rodada" onclick="trocar('rodada')"><span class="material-icons">casino</span>Rodada</div>
   <div class="nav-btn" data-tab="usuarios" onclick="trocar('usuarios')"><span class="material-icons">group</span>Jogadores</div>
   <div class="nav-btn" data-tab="saques" onclick="trocar('saques')"><span class="material-icons">payments</span>Saques</div>
+  <div class="nav-btn" data-tab="depositos" onclick="trocar('depositos')"><span class="material-icons">account_balance_wallet</span>Depósitos</div>
   <div class="side-foot">
     <a class="nav-btn" href="/?edit=1"><span class="material-icons">edit</span>Editar Jogo</a>
     <button class="ghost" onclick="logout()"><span class="material-icons">logout</span>Sair</button>
@@ -143,6 +144,18 @@
       </table>
     </div>
     <div class="msg" id="saqueMsg"></div>
+  </section>
+
+  <!-- DEPOSITOS -->
+  <section class="card" id="tab-depositos">
+    <h2><span class="material-icons">account_balance_wallet</span> Pedidos de Depósito (PIX pagos)</h2>
+    <div style="overflow:auto">
+      <table id="depositosTable">
+        <thead><tr><th>ID</th><th>Jogador</th><th>Valor</th><th>Chave Pix</th><th>Status</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="msg" id="depositoMsg"></div>
   </section>
 </main>
 
@@ -235,6 +248,7 @@
         tb.appendChild(tr);
       });
       await carregarSaques();
+      await carregarDepositos();
     }catch(e){ alert('Acesso negado: '+e.message); location.href='/login.html'; }
   }
 
@@ -260,6 +274,29 @@
   async function resolverSaque(id,status){
     const m=document.getElementById('saqueMsg');
     try{ await api('/api/admin/saque','POST',{sessionToken:token,cpf,id,status}); m.className='msg ok'; m.textContent='Saque '+status; await carregarSaques(); }
+    catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  async function carregarDepositos(){
+    try{
+      const d = await api('/api/admin/depositos?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
+      const tb = document.querySelector('#depositosTable tbody');
+      tb.innerHTML='';
+      if(!d.depositos.length){ tb.innerHTML='<tr><td colspan="6" style="color:var(--muted)">Nenhum pedido.</td></tr>'; return; }
+      d.depositos.forEach(s=>{
+        const tr=document.createElement('tr');
+        const acoes = s.status==='pendente'
+          ? `<button class="green" onclick="resolverDeposito('${s.id}','pago')">Aprovar</button> <button class="danger" onclick="resolverDeposito('${s.id}','recusado')">Recusar</button>`
+          : `<span class="pill ${s.status}">${s.status}</span>`;
+        tr.innerHTML = `<td>${s.id}</td><td>${s.nome} <small style="color:var(--muted)">${s.cpf}</small></td><td>${brl(s.valor)}</td><td>${s.pix}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${acoes}</td>`;
+        tb.appendChild(tr);
+      });
+    }catch(e){}
+  }
+
+  async function resolverDeposito(id,status){
+    const m=document.getElementById('depositoMsg');
+    try{ await api('/api/admin/deposito','POST',{sessionToken:token,cpf,id,status}); m.className='msg ok'; m.textContent='Depósito '+status+(status==='pago'?' — saldo creditado':''); await carregarDepositos(); }
     catch(e){ m.className='msg'; m.textContent=e.message; }
   }
 
@@ -299,6 +336,7 @@
 
   carregar();
   setInterval(()=>{ if(document.getElementById('tab-visao').classList.contains('active')||document.getElementById('tab-usuarios').classList.contains('active')) carregar(); }, 6000);
+  setInterval(()=>{ if(document.getElementById('tab-depositos').classList.contains('active')) carregarDepositos(); }, 5000);
 </script>
 </body>
 </html>

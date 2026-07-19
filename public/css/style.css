@@ -792,5 +792,8 @@ body.editor-active [contenteditable="true"]:hover {
     background: linear-gradient(145deg, var(--neon), var(--neon-2)); color: #fff; font-weight: 700; }
 .dep-pix .pix-back { margin-top: 12px; width: 100%; padding: 10px; border-radius: 10px; cursor: pointer;
     background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14); color: var(--text); font-weight: 700; }
+.dep-pix .pix-paid { margin-top: 8px; width: 100%; padding: 11px; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(145deg, #34d399, #059669); border: none; color: #fff; font-weight: 700; }
+.dep-pix .pix-paid:disabled { opacity: .6; cursor: default; }
 .dep-pix .pix-status { margin-top: 12px; font-size: 11px; color: var(--muted); line-height: 1.5; }
 

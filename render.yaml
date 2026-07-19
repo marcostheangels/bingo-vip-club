@@ -18,3 +18,9 @@ services:
         value: "0"
       - key: DATABASE_URL
         sync: false
+      - key: INFINITEPay_HANDLE
+        sync: false
+      - key: INFINITEPay_WEBHOOK_URL
+        sync: false
+      - key: INFINITEPay_REDIRECT_URL
+        sync: false

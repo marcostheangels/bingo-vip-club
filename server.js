@@ -247,8 +247,138 @@ app.post('/api/admin/saque', requireAdmin, async (req, res) => {
   res.json({ ok: true, pedido: { id, status } });
 });
 
+// Lista pedidos de depósito (admin)
+app.get('/api/admin/depositos', (req, res) => {
+  const { sessionToken, cpf } = req.query;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  res.json({ depositos: db.listDepositos() });
+});
+
+// Resolve pedido de depósito: aprovar (credita saldo) ou recusar (não credita)
+app.post('/api/admin/deposito', requireAdmin, async (req, res) => {
+  const { id, status } = req.body || {};
+  if (typeof id !== 'string' || !['pago', 'recusado'].includes(status)) return res.status(400).json({ error: 'status inválido' });
+  const pedido = (await db.listDepositos()).find((x) => x.id === id);
+  if (!pedido) return res.status(404).json({ error: 'pedido não encontrado' });
+  if (pedido.status !== 'pendente') return res.status(400).json({ error: 'pedido já resolvido' });
+  if (status === 'pago') {
+    const u = db.users.get(pedido.cpf);
+    if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
+    u.balance = +(u.balance + pedido.valor).toFixed(2);
+    db.markDirty(pedido.cpf);
+    db.saveUsers();
+  }
+  await db.updateDeposito(id, status);
+  if (pedido.cpf) {
+    try {
+      const io = require('./src/socket')._io;
+      if (io) io.of('/').sockets.forEach((s) => {
+        if (s.data.cpf === pedido.cpf) {
+          const u2 = db.users.get(pedido.cpf);
+          s.emit('saldo', { balance: u2.balance, bonus: u2.bonus, deposito: u2.deposito, saldoJogavel: db.saldoJogavel(pedido.cpf) });
+        }
+      });
+    } catch (e) {}
+  }
+  res.json({ ok: true, pedido: { id, status } });
+});
+
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ===== Depósito (jogador cria link PIX via InfinitePay) =====
+app.post('/api/deposito', async (req, res) => {
+  const { sessionToken, cpf, valor } = req.body || {};
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  const v = parseFloat(String(valor).replace(',', '.'));
+  if (!v || v < 1) return res.status(400).json({ error: 'Valor mínimo de depósito é R$ 1,00.' });
+
+  const handle = process.env.INFINITEPay_HANDLE;
+  if (!handle) return res.status(500).json({ error: 'InfinitePay não configurado (INFINITEPay_HANDLE).' });
+
+  const orderNsu = 'D' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const pedido = db.addDeposito({
+    id: orderNsu,
+    cpf: cpfLimpo,
+    nome: u.nome,
+    valor: +v.toFixed(2),
+    pix: '',
+    status: 'pendente',
+    orderNsu,
+    createdAt: Date.now(),
+  });
+
+  const payload = {
+    handle,
+    order_nsu: orderNsu,
+    redirect_url: process.env.INFINITEPay_REDIRECT_URL || (req.protocol + '://' + req.get('host') + '/'),
+    webhook_url: process.env.INFINITEPay_WEBHOOK_URL || (req.protocol + '://' + req.get('host') + '/api/webhook/infinitepay'),
+    items: [{ quantity: 1, price: Math.round(v * 100), description: 'Recarga Bingo VIP Club' }],
+  };
+
+  try {
+    const r = await fetch('https://api.checkout.infinitepay.io/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.url) {
+      console.error('[infinitepay] erro criar link:', r.status, data);
+      return res.status(502).json({ error: 'Falha ao gerar link de pagamento.', detail: data });
+    }
+    res.json({ ok: true, checkoutUrl: data.url, pedido: { id: pedido.id, valor: pedido.valor, status: pedido.status } });
+  } catch (e) {
+    console.error('[infinitepay] excecao:', e.message);
+    res.status(502).json({ error: 'Erro de comunicação com InfinitePay.' });
+  }
+});
+
+// ===== Webhook da InfinitePay (confirmação automática de pagamento) =====
+app.post('/api/webhook/infinitepay', async (req, res) => {
+  try {
+    const body = req.body || {};
+    // Corpo documentado: { invoice_slug, amount, paid_amount, capture_method, transaction_nsu, order_nsu, receipt_url, ... }
+    const orderNsu = body.order_nsu || (body.data && body.data.order_nsu);
+    if (!orderNsu) return res.status(400).json({ error: 'order_nsu ausente' });
+    const pedido = db.findDepositoByOrder(orderNsu);
+    if (!pedido) return res.status(400).json({ error: 'pedido não encontrado' });
+    if (pedido.status === 'pago') return res.json({ ok: true, status: 'ja_creditado' });
+
+    // Credita o saldo do jogador.
+    const u = db.users.get(pedido.cpf);
+    if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
+    u.balance = +(u.balance + pedido.valor).toFixed(2);
+    db.markDirty(pedido.cpf);
+    db.saveUsers();
+    await db.updateDeposito(pedido.id, 'pago');
+
+    try {
+      const io = require('./src/socket')._io;
+      if (io) io.of('/').sockets.forEach((s) => {
+        if (s.data.cpf === pedido.cpf) {
+          const u2 = db.users.get(pedido.cpf);
+          s.emit('saldo', { balance: u2.balance, bonus: u2.bonus, deposito: u2.deposito, saldoJogavel: db.saldoJogavel(pedido.cpf) });
+        }
+      });
+    } catch (e) {}
+
+    return res.json({ ok: true, status: 'creditado' });
+  } catch (e) {
+    console.error('[webhook infinitepay] erro:', e.message);
+    return res.status(400).json({ error: 'erro no webhook' });
+  }
 });
 
 // ===== Saque (jogador solicita) =====

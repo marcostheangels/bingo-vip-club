@@ -9,6 +9,7 @@ const fs = require('fs');
 const users = new Map();        // cpf -> { cpf, nome, email, chavePix, password, balance, sessionToken }
 const sessions = new Map();     // token -> cpf
 const saques = [];              // pedidos de saque: { id, cpf, nome, valor, pix, status, createdAt }
+const depositos = [];           // pedidos de depósito PIX: { id, cpf, nome, valor, pix, status, createdAt }
 const config = require('./config');
 
 const USERS_FILE = path.join(__dirname, '..', 'users.json');
@@ -61,6 +62,20 @@ async function initDB() {
           created_at BIGINT
         );
       `);
+      // Tabela de pedidos de depósito (PIX pago pelo jogador, aguarda aprovação do admin).
+      await pgPool.query(`
+        CREATE TABLE IF NOT EXISTS depositos (
+          id TEXT PRIMARY KEY,
+          cpf TEXT,
+          nome TEXT,
+          valor NUMERIC,
+          pix TEXT,
+          status TEXT,
+          order_nsu TEXT,
+          created_at BIGINT
+        );
+      `);
+      await pgPool.query(`ALTER TABLE depositos ADD COLUMN IF NOT EXISTS order_nsu TEXT`).catch(() => {});
       // Carrega todos para o cache em memória.
       const res = await pgPool.query('SELECT cpf, nome, email, chave_pix AS "chavePix", password, balance, session_token AS "sessionToken", COALESCE(admin, FALSE) AS "admin", COALESCE(bonus, 0) AS "bonus", COALESCE(deposito, 0) AS "deposito" FROM users');
       for (const row of res.rows) {
@@ -191,6 +206,47 @@ async function updateSaque(id, status) {
   return s;
 }
 
+// ===== Pedidos de depósito (PIX pago, aguarda aprovação do admin) =====
+async function addDeposito(pedido) {
+  depositos.unshift(pedido);
+  if (pgPool) {
+    try {
+      await pgPool.query(
+        `INSERT INTO depositos (id, cpf, nome, valor, pix, status, order_nsu, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         ON CONFLICT (id) DO NOTHING`,
+        [pedido.id, pedido.cpf, pedido.nome, pedido.valor, pedido.pix, pedido.status, pedido.orderNsu || null, pedido.createdAt]
+      );
+    } catch (e) { console.error('[db] erro deposito PG:', e.message); }
+  }
+  return pedido;
+}
+
+async function listDepositos() {
+  if (pgPool) {
+    try {
+      const r = await pgPool.query('SELECT * FROM depositos ORDER BY created_at DESC');
+      return r.rows.map((x) => ({ id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, orderNsu: x.order_nsu, createdAt: Number(x.created_at) }));
+    } catch (e) { console.error('[db] erro listDepositos:', e.message); }
+  }
+  return depositos.slice();
+}
+
+async function updateDeposito(id, status) {
+  const d = depositos.find((x) => x.id === id);
+  if (d) d.status = status;
+  if (pgPool) {
+    try { await pgPool.query('UPDATE depositos SET status=$1 WHERE id=$2', [status, id]); }
+    catch (e) { console.error('[db] erro updateDeposito:', e.message); }
+  }
+  return d;
+}
+
+// Busca um pedido de depósito pelo order_nsu (usado no webhook da InfinitePay).
+function findDepositoByOrder(orderNsu) {
+  return depositos.find((x) => x.orderNsu === orderNsu) || null;
+}
+
 // ===== Snapshot da rodada em andamento (retomada após queda) =====
 async function saveRound(snapshot) {
   if (!pgPool) return;
@@ -317,6 +373,10 @@ module.exports = {
   addSaque,
   listSaques,
   updateSaque,
+  addDeposito,
+  listDepositos,
+  updateDeposito,
+  findDepositoByOrder,
   saveRound,
   loadRound,
   clearRound,

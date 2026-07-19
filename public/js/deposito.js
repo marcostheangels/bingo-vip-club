@@ -1,9 +1,5 @@
-// ===== Depósito via PIX (QR Code copia-e-cola) =====
+// ===== Depósito via PIX (InfinitePay Checkout Integrado) =====
 (function () {
-  const PIX_KEY = '+5538998551336'; // chave PIX do administrador (telefone, com +55 conforme padrão Bacen)
-  const PIX_NOME = 'MARCOS THE ANGELS';
-  const PIX_CIDADE = 'BRASIL';
-
   let valorAtual = 0;
 
   function montarPayloadPix(valor) {
@@ -105,55 +101,30 @@
     const v = parseFloat(String(valorAtual).replace(',', '.'));
     const msg = document.getElementById('depMsg');
     if (!v || v < 1) { msg.className = 'dep-msg'; msg.textContent = 'Escolha um valor válido (mín. R$ 1,00).'; return; }
-    gerarPix(v);
+    criarDeposito(v);
   }
 
-  // Garante que a biblioteca QRCode esteja disponível. Se o /js/qrcode.min.js
-  // der 404 (ausente no servidor) ou tiver sido removido do HTML pelo editor,
-  // tenta carregar de um CDN como fallback. Resolve true se disponível.
-  function ensureQRCode() {
-    return new Promise((resolve) => {
-      if (window.QRCode) return resolve(true);
-      const cdn = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-      const s = document.createElement('script');
-      s.src = cdn;
-      s.onload = () => resolve(!!window.QRCode);
-      s.onerror = () => resolve(false);
-      document.head.appendChild(s);
-    });
-  }
-
-  function gerarPix(valor) {
-    const payload = montarPayloadPix(valor);
-    const box = document.querySelector('#depModal .dep-box');
-    box.innerHTML = `
-      <div class="dep-head">
-        <span class="dep-title">💰 Pague o PIX</span>
-        <button class="dep-close" onclick="fecharDeposito()">✕</button>
-      </div>
-      <div class="dep-pix">
-        <div class="pix-amount">${window.brl(valor)}</div>
-        <div class="pix-qr" id="pixQr"></div>
-        <div class="pix-copy-row">
-          <input class="pix-code" id="pixCode" readonly value="${payload}">
-          <button class="pix-copy" id="pixCopy">Copiar</button>
-        </div>
-        <button class="pix-back" onclick="abrirDeposito()">← Outro valor</button>
-        <div class="pix-status">📷 Escaneie com o app do seu banco.<br>Saldo será creditado pelo administrador após a confirmação do pagamento.</div>
-      </div>
-    `;
-    const qr = box.querySelector('#pixQr');
-    ensureQRCode().then((ok) => {
-      if (ok && window.QRCode) {
-        new window.QRCode(qr, { text: payload, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M });
-      } else {
-        qr.innerHTML = '<div style="color:#333;font-size:11px;padding-top:60px">QR indisponível — use Copiar o código PIX.</div>';
-      }
-    });
-    box.querySelector('#pixCopy').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(payload); box.querySelector('#pixCopy').textContent = '✓ Copiado'; setTimeout(() => box.querySelector('#pixCopy').textContent = 'Copiar', 1500); }
-      catch { box.querySelector('#pixCode').select(); document.execCommand('copy'); }
-    });
+  async function criarDeposito(valor) {
+    const btn = document.getElementById('depConfirm');
+    if (btn) { btn.disabled = true; btn.textContent = 'Gerando PIX...'; }
+    try {
+      const token = localStorage.getItem('bingo_session_token');
+      const cpf = localStorage.getItem('bingo_meu_cpf');
+      if (!token || !cpf) throw new Error('Sessão inválida. Faça login novamente.');
+      const r = await fetch('/api/deposito', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: token, cpf, valor })
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.checkoutUrl) throw new Error(data.error || 'Erro ao gerar pagamento.');
+      // Redireciona o jogador para o checkout da InfinitePay (Pix).
+      window.location.href = data.checkoutUrl;
+    } catch (e) {
+      const msg = document.getElementById('depMsg');
+      msg.className = 'dep-msg'; msg.textContent = e.message;
+      if (btn) { btn.disabled = false; btn.textContent = 'Gerar PIX'; }
+    }
   }
 
   window.abrirDeposito = abrirDeposito;
