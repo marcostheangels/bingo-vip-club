@@ -135,6 +135,8 @@ function iniciarSorteio() {
 
 function finalizarRodada() {
   if (core.state.status === 'finished') return;
+  console.log('[round] finalizarRodada — sorteio=' + core.state.sorteio + ' bolas=' + core.state.drawnBalls.length +
+    ' status=' + core.state.status + ' keno?=' + !!core.state.winners.keno);
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
@@ -161,6 +163,7 @@ function finalizarRodada() {
 }
 
 function comecarRodada() {
+  console.log('[round] comecarRodada — novo sorteio=' + (core.state.sorteio + 1) + ' status anterior=' + core.state.status);
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
@@ -174,8 +177,10 @@ function comecarRodada() {
   // sincronizado: contador regressivo, botão de compra habilitado e painel
   // de jogadores atualizado com as cartelas novas.
   core.intermissionTimer = setInterval(() => {
-    if (core.state.status === 'intermission') broadcastState();
-    else { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
+    if (core.state.status === 'intermission') {
+      if (process.env.BINGO_DEBUG) console.log('[round] intermissionTimer tick — sorteio=' + core.state.sorteio);
+      broadcastState();
+    } else { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   }, 1000);
   setTimeout(iniciarSorteio, config.INTERMISSION);
 }
@@ -280,6 +285,7 @@ function publicState() {
 }
 
 function broadcastState() {
+  if (process.env.BINGO_DEBUG) console.log('[round] broadcastState — status=' + core.state.status + ' sorteio=' + core.state.sorteio);
   // Evita travar o event loop: com poucas cartelas emite na hora; com muitas,
   // adia o broadcast para a próxima iteração do loop de eventos.
   const total = core.roundCards.size;

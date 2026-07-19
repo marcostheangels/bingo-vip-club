@@ -1,12 +1,16 @@
 // ===== Socket.IO client + montagem do grid 90 bolas =====
 window.gridElement = document.getElementById('board-grid');
 const gridElement = window.gridElement;
-for (let i = 1; i <= 90; i++) {
-  const cell = document.createElement('div');
-  cell.classList.add('grid-cell');
-  cell.dataset.num = i;
-  cell.innerText = String(i).padStart(2, '0');
-  gridElement.appendChild(cell);
+if (gridElement) {
+  for (let i = 1; i <= 90; i++) {
+    const cell = document.createElement('div');
+    cell.classList.add('grid-cell');
+    cell.dataset.num = i;
+    cell.innerText = String(i).padStart(2, '0');
+    gridElement.appendChild(cell);
+  }
+} else {
+  console.warn('[bingo] #board-grid ausente no DOM — grid de bolas não montado.');
 }
 
 const socket = io({ auth: { token } });
@@ -31,13 +35,29 @@ socket.on('saldo', ({ balance, saldoJogavel }) => {
 // ===== Minhas cartelas =====
 socket.on('myCards', (cards) => {
   window.setMyCards(cards);
-  document.getElementById('cartCount').textContent = cards.length;
+  setTxt('cartCount', cards.length);
   window.renderMyCards();
 });
 
 socket.on('state', (s) => {
+  console.log('[bingo][socket] evento state — status=' + (s && s.status) + ' sorteio=' + (s && s.sorteio) +
+    ' statusBanner?=' + !!document.getElementById('statusBanner') +
+    ' statusIco?=' + !!document.getElementById('statusIco') +
+    ' DOMready=' + document.readyState);
   window.__lastState = s;
-  window.renderState(s);
+  try {
+    window.renderState(s);
+  } catch (e) {
+    console.error('[bingo][socket] ERRO em renderState:', e,
+      '\nstate=', JSON.stringify(s).slice(0, 300));
+  }
+});
+
+// Ao reconectar, pede o estado novamente (corrige tela congelada após queda/caiu rede
+// durante a transição fim de jogo -> nova rodada).
+socket.on('connect', () => {
+  console.log('[bingo][socket] reconectado — CLIENT_VER=' + (window.CLIENT_VER || '?'));
+  socket.emit('requestState');
 });
 
 // ===== Vencedor / Jackpot =====

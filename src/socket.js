@@ -43,13 +43,14 @@ function init(server) {
     const owner = socket.data.cpf;
     const u = db.users.get(owner);
     const emitirEstado = () => {
+      if (process.env.BINGO_DEBUG) console.log('[socket] emitirEstado -> cpf=' + owner + ' status=' + core.state.status + ' sorteio=' + core.state.sorteio);
       socket.emit('state', round.publicState());
       socket.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(owner) });
       socket.emit('myCards', round.cardsDoUser(owner));
     };
     emitirEstado();
-    // Re-emite o estado ao reconectar (o servidor revalida o token no handshake).
-    socket.on('connect', emitirEstado);
+    // Cliente pede estado explícito (ex.: após reconexão) para não ficar com tela congelada.
+    socket.on('requestState', emitirEstado);
 
     socket.on('comprar', (qtd, cb) => {
       // Limite rígido por compra (não confia no cliente).

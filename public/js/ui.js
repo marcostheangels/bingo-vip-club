@@ -2,6 +2,23 @@
 const elMainBall = document.getElementById('mainBall');
 const playersContainer = document.getElementById('players-list');
 const elStatusBanner = document.getElementById('statusBanner');
+// Cache dos spans do banner (evita getElementById a cada render e crash se ausentes).
+const elStatusIco = document.getElementById('statusIco');
+const elStatusText = document.getElementById('statusText');
+
+// Helper seguro: define textContent apenas se o elemento existir.
+// Isso evita o "Cannot set properties of null" quando um id some do DOM
+// (ex.: index.html reescrito pelo editor admin ou reconexão durante reload).
+function setTxt(idOrEl, val) {
+  const el = (typeof idOrEl === 'string') ? document.getElementById(idOrEl) : idOrEl;
+  if (!el) {
+    console.warn('[bingo][setTxt] elemento ausente no DOM:', (typeof idOrEl === 'string' ? idOrEl : '??'),
+      '— CLIENT_VER=' + (window.CLIENT_VER || '?'));
+    return false;
+  }
+  el.textContent = val;
+  return true;
+}
 
 function updateStatusBanner(s) {
   let ico = '🔔', txt = '', cls = 'show';
@@ -18,19 +35,29 @@ function updateStatusBanner(s) {
   } else if (s.status === 'finished') {
     ico = '🏁'; txt = `Sorteio #${s.sorteio} encerrado!`; cls = 'show';
   }
-  document.getElementById('statusIco').textContent = ico;
-  document.getElementById('statusText').textContent = txt;
-  elStatusBanner.className = cls;
+  // Logs detalhados: avisa se os spans sumiram do DOM (causa do crash na transição).
+  if (!elStatusIco || !elStatusText) {
+    console.warn('[bingo][updateStatusBanner] statusIco/statusText AUSENTES no DOM ' +
+      '(provável index.html salvo pelo editor sem os spans). status=' + (s && s.status) +
+      ' sorteio=' + (s && s.sorteio) + ' CLIENT_VER=' + (window.CLIENT_VER || '?'));
+  }
+  setTxt(elStatusIco, ico);
+  setTxt(elStatusText, txt);
+  if (elStatusBanner) elStatusBanner.className = cls;
 }
 
 function renderPhasePanel(s) {
+  if (!s || !s.prizes) {
+    console.warn('[bingo][renderPhasePanel] state inválido (sem prizes):', JSON.stringify(s).slice(0, 120));
+    return;
+  }
   const fase = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
   const panel = document.getElementById('phasePanel');
-  panel.className = 'phase-panel fase-' + fase;
-  document.getElementById('phaseName').textContent = NOME[fase].toUpperCase();
-  document.getElementById('phaseSub').textContent = SUBFASE[fase];
-  document.getElementById('phasePrize').textContent = brl(s.prizes[fase]);
-  document.getElementById('phaseBalls').textContent = s.drawnBalls.length;
+  if (panel) panel.className = 'phase-panel fase-' + fase;
+  setTxt('phaseName', NOME[fase].toUpperCase());
+  setTxt('phaseSub', SUBFASE[fase]);
+  setTxt('phasePrize', brl(s.prizes[fase]));
+  setTxt('phaseBalls', s.drawnBalls.length);
 
   // Melhor cartela: menor falta na fase atual entre as minhas cartelas
   let melhor = null;
@@ -40,21 +67,29 @@ function renderPhasePanel(s) {
     const f = window.faltaFase(c.card, drawn, fase);
     if (melhor === null || f < melhor) melhor = f;
   });
-  document.getElementById('phaseBest').textContent =
-    cards.length === 0 ? '—' : (melhor === 0 ? 'FECHOU!' : 'faltam ' + melhor);
+  setTxt('phaseBest',
+    cards.length === 0 ? '—' : (melhor === 0 ? 'FECHOU!' : 'faltam ' + melhor));
 
   // Passos de progresso das fases
   const prog = document.getElementById('phaseProgress');
-  prog.innerHTML = PHASE_SEQUENCE.map((p, i) => {
-    let cls = 'pp-step';
-    if (s.winners[p]) cls += ' done';
-    else if (i === s.phaseIndex) cls += ' active';
-    else cls += ' locked';
-    return `<div class="${cls}"><div class="pp-dot"></div><div class="pp-name">${NOME[p]}</div></div>`;
-  }).join('');
+  if (prog) {
+    prog.innerHTML = PHASE_SEQUENCE.map((p, i) => {
+      let cls = 'pp-step';
+      if (s.winners[p]) cls += ' done';
+      else if (i === s.phaseIndex) cls += ' active';
+      else cls += ' locked';
+      return `<div class="${cls}"><div class="pp-dot"></div><div class="pp-name">${NOME[p]}</div></div>`;
+    }).join('');
+  }
 }
 
 function renderState(s) {
+  console.log('[bingo][renderState] status=' + (s && s.status) + ' sorteio=' + (s && s.sorteio) +
+    ' drawnBalls=' + (s && s.drawnBalls ? s.drawnBalls.length : '?') +
+    ' lastSorteio=' + window.__lastSorteio +
+    ' DOMready=' + document.readyState +
+    ' statusBanner?=' + !!document.getElementById('statusBanner') +
+    ' statusIco?=' + !!document.getElementById('statusIco'));
   window.setGameState(s);
   // Fecha overlays de vitoria/jackpot por estado: se comecou nova rodada (intermission)
   // ou o numero do sorteio mudou, nada pode ficar cobrindo a tela.
@@ -66,74 +101,81 @@ function renderState(s) {
     if (window.winTimer) { clearTimeout(window.winTimer); window.winTimer = null; }
   }
   window.__lastSorteio = s.sorteio;
-  document.getElementById('sorteioId').textContent = '#' + s.sorteio;
-  const doacaoEl = document.getElementById('doacaoVal');
-  if (doacaoEl) doacaoEl.textContent = brl(s.cardCost);
-  document.getElementById('drawnCount').textContent = s.drawnBalls.length;
-  document.getElementById('cartCount').textContent = window.getMyCards().length;
+  setTxt('sorteioId', '#' + s.sorteio);
+  setTxt('doacaoVal', brl(s.cardCost));
+  setTxt('drawnCount', s.drawnBalls.length);
+  setTxt('cartCount', window.getMyCards().length);
 
-  document.getElementById('prizeKuadra').textContent = brlCompact(s.prizes.kuadra);
-  document.getElementById('prizeKina').textContent = brlCompact(s.prizes.kina);
-  document.getElementById('prizeKeno').textContent = brlCompact(s.prizes.keno);
-  document.getElementById('prizeAcumulado').textContent = brlCompact(s.prizes.acumulado);
+  setTxt('prizeKuadra', brlCompact(s.prizes.kuadra));
+  setTxt('prizeKina', brlCompact(s.prizes.kina));
+  setTxt('prizeKeno', brlCompact(s.prizes.keno));
+  setTxt('prizeAcumulado', brlCompact(s.prizes.acumulado));
 
   // Acumulado: meta de fechar a cartela até a bola N
-  document.getElementById('acBadge').textContent = s.acumuladoBalls;
+  setTxt('acBadge', s.acumuladoBalls);
   const acCard = document.getElementById('acCard');
   const acStatus = document.getElementById('acStatus');
-  if (s.winners.acumulado) {
-    acStatus.textContent = 'CONQUISTADO! 🏆';
-    acCard.classList.remove('closed');
-  } else if (s.acumuladoAberto) {
-    acStatus.textContent = `Até a bola ${s.acumuladoBalls} (${s.drawnBalls.length}/${s.acumuladoBalls})`;
-    acCard.classList.remove('closed');
-  } else {
-    acStatus.textContent = 'ACUMULADO PERDIDO';
-    acCard.classList.add('closed');
+  if (acStatus && acCard) {
+    if (s.winners.acumulado) {
+      acStatus.textContent = 'CONQUISTADO! 🏆';
+      acCard.classList.remove('closed');
+    } else if (s.acumuladoAberto) {
+      acStatus.textContent = `Até a bola ${s.acumuladoBalls} (${s.drawnBalls.length}/${s.acumuladoBalls})`;
+      acCard.classList.remove('closed');
+    } else {
+      acStatus.textContent = 'ACUMULADO PERDIDO';
+      acCard.classList.add('closed');
+    }
   }
 
   // Bola grande sendo sorteada
-  if (s.currentBall != null) {
-    elMainBall.textContent = s.currentBall;
-    elMainBall.className = 'main-ball ' + faixa(s.currentBall);
-    if (s.status === 'running' && s.currentBall !== window.__ultimaBolaSom) {
-      window.__ultimaBolaSom = s.currentBall;
-      window.playBallSound(s.currentBall);
+  if (elMainBall) {
+    if (s.currentBall != null) {
+      elMainBall.textContent = s.currentBall;
+      elMainBall.className = 'main-ball ' + faixa(s.currentBall);
+      if (s.status === 'running' && s.currentBall !== window.__ultimaBolaSom) {
+        window.__ultimaBolaSom = s.currentBall;
+        window.playBallSound(s.currentBall);
+      }
+    } else {
+      elMainBall.textContent = '--';
+      elMainBall.className = 'main-ball';
+      window.__ultimaBolaSom = null;
     }
-  } else {
-    elMainBall.textContent = '--';
-    elMainBall.className = 'main-ball';
-    window.__ultimaBolaSom = null;
   }
 
   renderPhasePanel(s);
   updateStatusBanner(s);
   // Indicador de "fase conquistada / sorteio pausado"
   const phasePanel = document.getElementById('phasePanel');
-  if (s.pausado && s.fasePausada) {
-    phasePanel.classList.add('fase-pausada');
-  } else {
-    phasePanel.classList.remove('fase-pausada');
+  if (phasePanel) {
+    if (s.pausado && s.fasePausada) {
+      phasePanel.classList.add('fase-pausada');
+    } else {
+      phasePanel.classList.remove('fase-pausada');
+    }
   }
   // Mapa 90 bolas
   const emIntermission = s.status === 'intermission';
   const emFinished = s.status === 'finished';
-  gridElement.querySelectorAll('.grid-cell').forEach((cell) => {
-    const n = +cell.dataset.num;
-    cell.className = 'grid-cell';
-    if (emIntermission || emFinished) return; // nova rodada / encerrada: garante mapa limpo
-    if (n === s.currentBall) cell.classList.add('current');
-    else if (s.drawnBalls.includes(n)) cell.classList.add('drawn', faixaGrid(n));
-  });
+  if (gridElement) {
+    gridElement.querySelectorAll('.grid-cell').forEach((cell) => {
+      const n = +cell.dataset.num;
+      cell.className = 'grid-cell';
+      if (emIntermission || emFinished) return; // nova rodada / encerrada: garante mapa limpo
+      if (n === s.currentBall) cell.classList.add('current');
+      else if (s.drawnBalls.includes(n)) cell.classList.add('drawn', faixaGrid(n));
+    });
+  }
 
   // Painel "Quem está perto de ganhar": TODOS os jogadores da sala (uma entrada
   // por jogador, a cartela mais próxima), em ordem crescente de quem falta menos
   // bolas para fechar a FASE ATUAL (Kuadra/Kina/Keno). Mostra: nº da cartela,
   // nome e os números que faltam.
   try {
-    playersContainer.innerHTML = '';
+    if (playersContainer) playersContainer.innerHTML = '';
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
-    document.getElementById('fasePainel').textContent = '— ' + NOME[faseAtual];
+    setTxt('fasePainel', '— ' + NOME[faseAtual]);
     window.__playersGanhou = {};
     (s.players || []).forEach((p) => { if (p.ganhou && p.ganhou.length) window.__playersGanhou[p.id] = p.ganhou; });
 
@@ -172,13 +214,14 @@ function renderState(s) {
   } catch (e) {
     const dbg = document.getElementById('debugPainel');
     if (dbg) dbg.textContent = 'ERRO painel: ' + e.message;
+    console.error('[bingo][renderState] erro no painel de jogadores:', e);
   }
 
   // Fases
   document.querySelectorAll('.fase-tag').forEach((t) => {
     t.classList.toggle('active', t.dataset.f === PHASE_SEQUENCE[s.phaseIndex]);
   });
-  document.getElementById('faseJogo').textContent = NOME[PHASE_SEQUENCE[s.phaseIndex]];
+  setTxt('faseJogo', NOME[PHASE_SEQUENCE[s.phaseIndex]]);
 
   // Banner de status + timer + painel de compra
   const banner = document.getElementById('statusBanner');
@@ -187,10 +230,10 @@ function renderState(s) {
   const buyPanel = document.getElementById('buyPanel');
 
   if (s.status === 'intermission') {
-    banner.classList.remove('show');
-    overlay.classList.add('show');
-    buyPanel.classList.add('buyable');
-    btnComprar.disabled = false;
+    if (banner) banner.classList.remove('show');
+    if (overlay) overlay.classList.add('show');
+    if (buyPanel) buyPanel.classList.add('buyable');
+    if (btnComprar) btnComprar.disabled = false;
     // Toca o som de início uma vez por rodada
     if (window.getSomInicioRodada() !== s.sorteio) {
       window.setSomInicioRodada(s.sorteio);
@@ -198,16 +241,18 @@ function renderState(s) {
     }
     updateCountdown();
   } else if (s.status === 'running') {
-    banner.classList.remove('show');
-    overlay.classList.remove('show');
-    buyPanel.classList.remove('buyable');
-    btnComprar.disabled = true;
+    if (banner) banner.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
+    if (buyPanel) buyPanel.classList.remove('buyable');
+    if (btnComprar) btnComprar.disabled = true;
   } else if (s.status === 'finished') {
-    banner.classList.add('show');
-    banner.textContent = '🏁 Rodada encerrada! Próxima começando...';
-    overlay.classList.remove('show');
-    buyPanel.classList.remove('buyable');
-    btnComprar.disabled = true;
+    if (banner) {
+      banner.classList.add('show');
+      banner.textContent = '🏁 Rodada encerrada! Próxima começando...';
+    }
+    if (overlay) overlay.classList.remove('show');
+    if (buyPanel) buyPanel.classList.remove('buyable');
+    if (btnComprar) btnComprar.disabled = true;
   }
 
   // Re-ordena as cartelas a cada nova bola (proximidade da fase atual muda)
@@ -221,15 +266,15 @@ function updateCountdown() {
   // indefinida aqui — o que travava o contador em 60s.
   const st = window.__lastState;
   if (!st || st.status !== 'intermission' || !st.startsAt) {
-    overlay.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
     return;
   }
-  overlay.classList.add('show');
+  if (overlay) overlay.classList.add('show');
   const secs = Math.max(0, Math.ceil((st.startsAt - Date.now()) / 1000));
   const timeEl = document.getElementById('countdownTime');
   const badge = document.getElementById('buyBadge');
-  document.getElementById('statusIco').textContent = '';
-  document.getElementById('statusText').textContent = '';
+  setTxt(elStatusIco, '');
+  setTxt(elStatusText, '');
   if (timeEl) {
     timeEl.textContent = secs;
     timeEl.classList.toggle('urgent', secs <= 10);
@@ -243,32 +288,33 @@ console.log('[bingo] ui.js carregado — CLIENT_VER=' + (window.CLIENT_VER || '?
 function showWinOverlay(w) {
   const s = WIN_STYLE[w.phase] || WIN_STYLE.kuadra;
   const banner = document.getElementById('winBanner');
+  if (!banner) { console.warn('[bingo][showWinOverlay] #winBanner ausente'); return; }
   banner.style.setProperty('--c1', s.c1);
   banner.style.setProperty('--c2', s.c2);
   banner.style.setProperty('--c3', s.c3);
-  document.getElementById('winIcon').textContent = s.icon;
-  document.getElementById('winTitle').textContent = NOME[w.phase].toUpperCase() + '!';
-  document.getElementById('winSub').textContent = s.sub;
-  document.getElementById('winValue').textContent = brl(w.prize) + ' cada';
+  setTxt('winIcon', s.icon);
+  setTxt('winTitle', NOME[w.phase].toUpperCase() + '!');
+  setTxt('winSub', s.sub);
+  setTxt('winValue', brl(w.prize) + ' cada');
 
   const wc = document.getElementById('winWinners');
-  wc.innerHTML = '';
+  if (wc) wc.innerHTML = '';
   (w.vencedores || []).forEach((v) => {
     const row = document.createElement('div');
     row.className = 'win-row';
     const cardsTxt = v.cardIds.length > 1 ? `cartelas ${v.cardIds.join(', ')}` : `cartela ${v.cardIds[0]}`;
     row.innerHTML = `<div><div class="wname">🎉 ${v.name}</div><div class="wcards">${cardsTxt}</div></div>
       <div class="wprize">${brl(v.prize)}</div>`;
-    wc.appendChild(row);
+    if (wc) wc.appendChild(row);
   });
 
   const overlay = document.getElementById('winOverlay');
-  overlay.classList.add('show');
+  if (overlay) overlay.classList.add('show');
   launchConfetti(s.c1, s.c2, s.c3);
 
   if (window.winTimer) clearTimeout(window.winTimer);
   const dur = w.phase === 'keno' ? 6000 : 3000;
-  window.winTimer = setTimeout(() => overlay.classList.remove('show'), dur);
+  window.winTimer = setTimeout(() => { if (overlay) overlay.classList.remove('show'); }, dur);
 }
 
 const WIN_STYLE = {
@@ -297,21 +343,21 @@ function launchConfetti(...extra) {
 // ===== Jackpot (Acumulado) =====
 let jackpotTimer = null;
 function showJackpot(j) {
-  document.getElementById('jackpotValue').textContent = brl(j.prize) + ' cada';
+  setTxt('jackpotValue', brl(j.prize) + ' cada');
   const wc = document.getElementById('jackpotWinners');
-  wc.innerHTML = '';
+  if (wc) wc.innerHTML = '';
   (j.vencedores || []).forEach((v) => {
     const row = document.createElement('div');
     row.className = 'jw-row';
     const cardsTxt = v.cardIds.length > 1 ? `cartelas ${v.cardIds.join(', ')}` : `cartela ${v.cardIds[0]}`;
     row.innerHTML = `<div class="jw-name">🎉 ${v.name}</div><div class="jw-prize">${brl(v.prize)}<div style="font-size:.6em;font-weight:600">${cardsTxt}</div></div>`;
-    wc.appendChild(row);
+    if (wc) wc.appendChild(row);
   });
   const overlay = document.getElementById('jackpotOverlay');
-  overlay.classList.add('show');
+  if (overlay) overlay.classList.add('show');
   launchCoins();
   if (jackpotTimer) clearTimeout(jackpotTimer);
-  jackpotTimer = setTimeout(() => overlay.classList.remove('show'), 6000);
+  jackpotTimer = setTimeout(() => { if (overlay) overlay.classList.remove('show'); }, 6000);
 }
 
 function launchCoins() {
@@ -339,10 +385,10 @@ const qtyRow = document.getElementById('qtyRow');
 
 function atualizarCompra() {
   const custo = window.gameState ? window.gameState.cardCost : CARD_COST;
-  elQty.textContent = qtd;
-  elTotalVal.textContent = brl(qtd * custo);
-  elTotalQty.textContent = qtd;
-  qtyRow.querySelectorAll('.qbtn').forEach((b) => b.classList.toggle('active', +b.dataset.q === qtd));
+  if (elQty) elQty.textContent = qtd;
+  if (elTotalVal) elTotalVal.textContent = brl(qtd * custo);
+  if (elTotalQty) elTotalQty.textContent = qtd;
+  if (qtyRow) qtyRow.querySelectorAll('.qbtn').forEach((b) => b.classList.toggle('active', +b.dataset.q === qtd));
 }
 function alterar(v) {
   qtd = Math.max(1, Math.min(200, qtd + v));
@@ -359,8 +405,10 @@ function comprarCartelas() {
   socket.emit('comprar', qtd, (res) => {
     if (res && res.error) {
       const banner = document.getElementById('statusBanner');
-      banner.classList.add('show');
-      banner.textContent = '⚠️ ' + res.error;
+      if (banner) {
+        banner.classList.add('show');
+        banner.textContent = '⚠️ ' + res.error;
+      }
       setTimeout(() => { if (window.gameState) renderState(window.gameState); }, 2500);
     }
   });
@@ -395,7 +443,8 @@ if (typeof document !== 'undefined') {
 
 // ===== Relógio =====
 setInterval(() => {
-  document.getElementById('live-clock').innerText = new Date().toTimeString().split(' ')[0];
+  const clk = document.getElementById('live-clock');
+  if (clk) clk.innerText = new Date().toTimeString().split(' ')[0];
 }, 1000);
 
 window.renderState = renderState;
