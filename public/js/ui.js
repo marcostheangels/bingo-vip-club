@@ -351,7 +351,7 @@ function comprarCartelas() {
 // ===== Zoom cartelas =====
 let cardW = 200;
 function zoom(delta) {
-  cardW = Math.max(150, Math.min(300, cardW + delta * 20));
+  cardW = Math.max(110, Math.min(300, cardW + delta * 20));
   const grid = document.getElementById('myCardsGrid');
   if (grid) grid.style.setProperty('--cardw', cardW + 'px');
 }
