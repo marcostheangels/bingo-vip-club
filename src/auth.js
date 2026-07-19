@@ -11,15 +11,26 @@ function loginResponse(u, res) {
   res.json({ sessionToken: token, cpf: u.cpf, nome: u.nome, email: u.email, balance: u.balance, admin: !!u.admin });
 }
 
+function emailValido(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+}
+
 function registerRoutes(app) {
   app.post('/api/register', (req, res) => {
     const { nome, cpf, email, senha, confirma, chavePix } = req.body || {};
     if (!nome || !cpf || !email || !senha || !chavePix) return res.status(400).json({ error: 'Preencha todos os campos.' });
     const cpfLimpo = String(cpf).replace(/\D/g, '');
     if (!db.validarCPF(cpfLimpo)) return res.status(400).json({ error: 'CPF inválido.' });
+    if (!emailValido(email)) return res.status(400).json({ error: 'E-mail inválido.' });
     if (senha.length < 4) return res.status(400).json({ error: 'Senha deve ter no mínimo 4 caracteres.' });
     if (senha !== confirma) return res.status(400).json({ error: 'Senhas não conferem.' });
     if (db.users.has(cpfLimpo)) return res.status(400).json({ error: 'CPF já cadastrado.' });
+    const emailLower = String(email).trim().toLowerCase();
+    for (const u of db.users.values()) {
+      if (String(u.email || '').trim().toLowerCase() === emailLower) {
+        return res.status(400).json({ error: 'E-mail já cadastrado.' });
+      }
+    }
     const u = db.ensureUser(cpfLimpo, { nome: nome.trim(), email: email.trim(), chavePix: chavePix.trim(), senha });
     loginResponse(u, res);
   });

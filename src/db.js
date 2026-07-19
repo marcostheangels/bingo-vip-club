@@ -310,7 +310,7 @@ function ensureUser(cpf, dados) {
   const key = cpf.replace(/\D/g, '');
   if (!users.has(key)) {
   const u = Object.assign(
-    { cpf: key, password: hash(dados.senha || ''), balance: 0, deposito: 0, bonus: 10.0, sessionToken: null, admin: false },
+    { cpf: key, password: hash(dados.senha || ''), balance: 0, deposito: 0, bonus: 5.0, sessionToken: null, admin: false },
     dados
   );
     u.password = hash(dados.senha || '');

@@ -14,6 +14,39 @@
 
   const editorActive = new URLSearchParams(location.search).has('edit');
 
+  // ===== Retorno do checkout InfinitePay: confirma pagamento e mostra mensagem =====
+  const retorno = new URLSearchParams(location.search);
+  const orderNsu = retorno.get('order_nsu');
+  if (orderNsu) {
+    try {
+      const r = await fetch('/api/deposito/status?sessionToken=' + encodeURIComponent(token) + '&cpf=' + encodeURIComponent(meuCpf) + '&orderNsu=' + encodeURIComponent(orderNsu));
+      const d = await r.json().catch(() => ({}));
+      if (d.ok) {
+        if (d.status === 'pago') {
+          mostrarAviso('✅ Pix enviado com sucesso! Seu saldo de ' + window.brl(d.valor) + ' foi creditado.', 'ok');
+        } else {
+          mostrarAviso('⏳ Pagamento ainda não confirmado. Assim que o banco confirmar, o valor cai na sua conta.', 'info');
+        }
+      }
+    } catch (e) {}
+    // Limpa a URL para não reprocessar.
+    history.replaceState({}, document.title, location.pathname);
+  }
+
+  // ===== Aviso flutuante (toast) =====
+  function mostrarAviso(texto, tipo) {
+    let el = document.getElementById('avisoFlutuante');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'avisoFlutuante';
+      document.body.appendChild(el);
+    }
+    el.textContent = texto;
+    el.className = 'aviso-flutuante show ' + (tipo || 'info');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.className = 'aviso-flutuante ' + (tipo || 'info'); }, 6000);
+  }
+
   // ===== Inspeção de código: clique simples em painel com data-src =====
   const srcModal = document.getElementById('srcModal');
   const srcTitle = document.getElementById('srcTitle');

@@ -292,6 +292,20 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Status de um pedido de depósito (usado ao retornar do checkout).
+app.get('/api/deposito/status', (req, res) => {
+  const { sessionToken, cpf, orderNsu } = req.query;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  const pedido = orderNsu && db.findDepositoByOrder(orderNsu);
+  if (!pedido) return res.status(404).json({ error: 'pedido não encontrado' });
+  res.json({ ok: true, status: pedido.status, valor: pedido.valor });
+});
+
 // ===== Depósito (jogador cria link PIX via InfinitePay) =====
 app.post('/api/deposito', async (req, res) => {
   const { sessionToken, cpf, valor } = req.body || {};
