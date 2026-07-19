@@ -1,11 +1,13 @@
 // ===== Lógica e render das Minhas Cartelas (cartela oficial 9x3) =====
 const myCardsGrid = document.getElementById('myCardsGrid');
 let myCards = [];
+// gameState exposto no window para ser compartilhado entre os scripts (ui.js precisa ler).
 let gameState = null;
+window.gameState = null;
 
 function setMyCards(cards) { myCards = cards; }
 function getMyCards() { return myCards; }
-function setGameState(s) { gameState = s; }
+function setGameState(s) { gameState = s; window.gameState = s; }
 
 function cardMarks(card, drawn) {
   let m = 0;
@@ -100,7 +102,7 @@ window.setMyCards = setMyCards;
 window.getMyCards = getMyCards;
 window.setGameState = setGameState;
 window.cardMarks = cardMarks;
-window.rowMarks = rowMarks;
 window.faltaFase = faltaFase;
 window.displayRows = displayRows;
+window.renderMyCards = renderMyCards;
 window.renderMyCards = renderMyCards;

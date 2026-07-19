@@ -320,7 +320,7 @@ const elTotalQty = document.getElementById('totalQty');
 const qtyRow = document.getElementById('qtyRow');
 
 function atualizarCompra() {
-  const custo = gameState ? gameState.cardCost : CARD_COST;
+  const custo = window.gameState ? window.gameState.cardCost : CARD_COST;
   elQty.textContent = qtd;
   elTotalVal.textContent = brl(qtd * custo);
   elTotalQty.textContent = qtd;
@@ -343,7 +343,7 @@ function comprarCartelas() {
       const banner = document.getElementById('statusBanner');
       banner.classList.add('show');
       banner.textContent = '⚠️ ' + res.error;
-      setTimeout(() => { if (gameState) renderState(gameState); }, 2500);
+      setTimeout(() => { if (window.gameState) renderState(window.gameState); }, 2500);
     }
   });
 }
