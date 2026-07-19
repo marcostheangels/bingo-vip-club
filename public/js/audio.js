@@ -16,6 +16,8 @@ let somInicioRodada = null;
 
 function playInicio() {
   if (!soundEnabled || !audioUnlocked) return;
+  // Garante que nenhuma música de vitória fique tocando ao iniciar a nova partida.
+  try { Object.values(winAudios).forEach((a) => { try { a.pause(); } catch (e) {} }); } catch (e) {}
   try { inicioAudio.currentTime = 0; inicioAudio.play().catch(() => {}); } catch (e) {}
 }
 
