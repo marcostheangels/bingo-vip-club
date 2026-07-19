@@ -159,7 +159,8 @@ function finalizarRodada() {
   }
   broadcastState();
   db.clearRound();
-  setTimeout(comecarRodada, 6000);
+  // 8s de tela "Rodada encerrada" antes de iniciar a nova contagem regressiva.
+  setTimeout(comecarRodada, 8000);
 }
 
 function comecarRodada() {
@@ -228,13 +229,13 @@ function publicState() {
   // Quem JÁ fez a fase aparece no topo, marcado com done:true (número vazio, "✓ FASE").
   const rankingPorFase = {};
   // Com muitas cartelas, limitamos o processamento do ranking para não travar o
-  // servidor (o ranking é apenas informativo). Cap de 1500 cartelas avaliadas.
-  const limite = Math.min(total, 1500);
-  let avaliadas = 0;
+  // servidor (o ranking é apenas informativo). Cap de 1500 cartelas avaliadas POR FASE.
+  const limitePorFase = Math.min(total, 1500);
   for (const phase of game.PHASE_SEQUENCE) {
     const porOwnerMap = new Map();
+    let avaliadas = 0;
     for (const c of core.roundCards.values()) {
-      if (avaliadas >= limite) break;
+      if (avaliadas >= limitePorFase) break;
       avaliadas++;
       if (!c || !c.card) continue;
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
