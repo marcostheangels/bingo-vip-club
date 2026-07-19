@@ -6,6 +6,7 @@ const roundCards = new Map();
 let cardSeq = 5000;
 let sorteioSeq = 131937;
 let drawTimer = null;
+let resumeTimer = null;
 
 // ===== Estado do jogo (rodada) =====
 const state = {};
@@ -53,6 +54,8 @@ module.exports = {
   set sorteioSeq(v) { sorteioSeq = v; },
   get drawTimer() { return drawTimer; },
   set drawTimer(v) { drawTimer = v; },
+  get resumeTimer() { return resumeTimer; },
+  set resumeTimer(v) { resumeTimer = v; },
   state,
   novaRodada,
   iniciarSorteio,

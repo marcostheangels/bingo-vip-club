@@ -11,7 +11,7 @@ function emitSaldoParaUser(owner) {
   if (!u) return;
   for (const [, s] of io.of('/').sockets) {
     if (s.data.cpf === owner) {
-      s.emit('saldo', { balance: u.balance });
+      s.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(owner) });
       s.emit('myCards', round.cardsDoUser(owner));
     }
   }
@@ -42,9 +42,14 @@ function init(server) {
   io.on('connection', (socket) => {
     const owner = socket.data.cpf;
     const u = db.users.get(owner);
-    socket.emit('state', round.publicState());
-    socket.emit('saldo', { balance: u.balance });
-    socket.emit('myCards', round.cardsDoUser(owner));
+    const emitirEstado = () => {
+      socket.emit('state', round.publicState());
+      socket.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(owner) });
+      socket.emit('myCards', round.cardsDoUser(owner));
+    };
+    emitirEstado();
+    // Re-emite o estado ao reconectar (o servidor revalida o token no handshake).
+    socket.on('connect', emitirEstado);
 
     socket.on('comprar', (qtd, cb) => {
       qtd = Math.max(1, Math.min(200, parseInt(qtd) || 1));
@@ -59,7 +64,7 @@ function init(server) {
         const id = ++core.cardSeq;
         core.roundCards.set(id, { id, owner, card: game.generateBingoCard() });
       }
-      socket.emit('saldo', { balance: u.balance });
+      socket.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(owner) });
       socket.emit('myCards', round.cardsDoUser(owner));
       round.broadcastState();
       cb && cb({ ok: true, balance: u.balance });

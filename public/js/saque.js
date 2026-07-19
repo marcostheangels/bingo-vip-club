@@ -34,8 +34,10 @@
       if (!r.ok) { msg.className = 'dep-msg'; msg.textContent = data.error || 'Erro ao solicitar saque.'; return; }
       msg.className = 'dep-msg ok';
       msg.textContent = '✅ Pedido enviado! Admin vai pagar via Pix.';
-      // atualiza saldo exibido
-      if (window.__socket) window.__socket.emit('saldo', { balance: data.saldo });
+      // O servidor emite o evento 'saldo' para o jogador; atualizamos direto o display.
+      const el = document.getElementById('balanceVal');
+      if (el && typeof data.saldo === 'number') el.textContent = window.brl ? window.brl(data.saldo) : data.saldo;
+      if (window.__saldoJogavel !== undefined && typeof data.saldo === 'number') window.__saldoJogavel = data.saldo;
       setTimeout(fecharSaque, 1800);
     } catch (e) {
       msg.className = 'dep-msg'; msg.textContent = 'Falha de conexão.';

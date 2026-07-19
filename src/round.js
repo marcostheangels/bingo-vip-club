@@ -17,7 +17,7 @@ function init(ioRef, hooks) {
 function pagar(owner, valor) {
   const u = db.users.get(owner);
   if (u) {
-    u.balance += valor;
+    u.balance = +(u.balance + valor).toFixed(2);
     db.markDirty(owner);
     db.saveUsers();
     emitSaldoParaUser(owner);
@@ -60,11 +60,13 @@ function checarVencedores() {
 
     // Pausa o sorteio durante a animação de vitória para dar espaço aos jogadores.
     if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+    if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
     const faseAtual = phase;
-    setTimeout(() => {
+    core.resumeTimer = setTimeout(() => {
+      core.resumeTimer = null;
       // Só retoma se a rodada ainda estiver ativa e não for a última fase (Keno encerra tudo).
       if (faseAtual !== 'keno' && core.state.status === 'running' && !core.state.winners.keno) {
-        core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+        if (!core.drawTimer) core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
       }
     }, 3500);
   }
@@ -109,13 +111,14 @@ async function restaurarRodada() {
   core.roundCards.clear();
   for (const c of snap.cards) core.roundCards.set(c.id, { id: c.id, owner: c.owner, card: c.card });
   // Se estava em sorteio, retoma o timer; se em intermission, agenda início.
+  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.state.status === 'running') {
-    if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
     core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
     console.log('[round] rodada retomada (running) bolas:', core.state.drawnBalls.length);
   } else if (core.state.status === 'intermission') {
     const restante = Math.max(1000, (core.state.startsAt || 0) - Date.now());
-    setTimeout(iniciarSorteio, restante);
+    core.resumeTimer = setTimeout(iniciarSorteio, restante);
     console.log('[round] rodada retomada (intermission)');
   }
   broadcastState();
@@ -124,13 +127,17 @@ async function restaurarRodada() {
 }
 
 function iniciarSorteio() {
+  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   core.iniciarSorteio();
   broadcastState();
   core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
 }
 
 function finalizarRodada() {
+  if (core.state.status === 'finished') return;
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   core.finalizarRodada();
   broadcastState();
   db.clearRound();
@@ -138,6 +145,8 @@ function finalizarRodada() {
 }
 
 function comecarRodada() {
+  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   core.novaRodada();
   broadcastState();
   db.clearRound();
@@ -163,21 +172,16 @@ function publicState() {
   for (const [owner, cards] of porOwner) {
     const u = db.users.get(owner);
     let melhorFalta = 99;
-    for (const c of cards) {
+    const validCards = cards.filter((c) => c && c.card);
+    for (const c of validCards) {
       const f = game.faltaForPhase(c.card, core.state.drawnBalls, phaseAtual);
       if (f < melhorFalta) melhorFalta = f;
     }
     // Fases que este jogador JA fechou nesta rodada (badge fixo no painel).
     const ganhou = [];
-    for (const ph of game.PHASE_SEQUENCE) {
-      if (ph === 'keno') continue; // keno tem tratamento proprio
-      const ev = game.evaluateCard(cards[0].card, core.state.drawnBalls);
-      if (ev[ph].done) ganhou.push(ph);
-    }
-    // checa todas as cartelas do jogador (pode ter feito em outra cartela)
-    for (const c of cards) {
+    for (const c of validCards) {
       for (const ph of game.PHASE_SEQUENCE) {
-        if (ph === 'keno') continue;
+        if (ph === 'keno') continue; // keno tem tratamento proprio
         if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
       }
     }
@@ -192,6 +196,7 @@ function publicState() {
   for (const phase of game.PHASE_SEQUENCE) {
     const porOwner = new Map();
     for (const c of core.roundCards.values()) {
+      if (!c || !c.card) continue;
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
       const fase = ev[phase];
       const faltantes = game.missingForPhase(c.card, core.state.drawnBalls, phase);

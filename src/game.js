@@ -9,7 +9,7 @@ function faixaGrid(n) {
 
 // Gera cartela oficial de bingo 90 bolas: 3 linhas x 9 colunas, 15 números, 5 por linha.
 // Cada coluna respeita a faixa (col 0: 1-9, col 1: 10-19, ..., col 8: 80-90). '' = espaço vazio.
-function generateBingoCard() {
+function buildBingoCard() {
   const card = Array.from({ length: 3 }, () => Array(9).fill(''));
 
   for (let column = 0; column < 9; column++) {
@@ -48,8 +48,23 @@ function generateBingoCard() {
     const cnt = card[row].filter((v) => v !== '').length;
     if (cnt !== 5) ok = false;
   }
-  if (!ok || cardNumbers(card).length !== 15) return generateBingoCard();
+  if (!ok || cardNumbers(card).length !== 15) return null;
 
+  return card;
+}
+
+// Gera uma cartela válida com limite de tentativas (evita recursão infinita).
+function generateBingoCardSafe() {
+  for (let t = 0; t < 50; t++) {
+    const c = buildBingoCard();
+    if (c) return c;
+  }
+  // Fallback determinístico: 3 linhas de 5 em faixas distintas.
+  const card = Array.from({ length: 3 }, () => Array(9).fill(''));
+  let n = 1;
+  for (let row = 0; row < 3; row++) {
+    for (const col of [0, 1, 2, 3, 4]) card[row][col] = n++;
+  }
   return card;
 }
 
@@ -139,7 +154,8 @@ module.exports = {
   PHASE_SEQUENCE,
   NOME,
   faixaGrid,
-  generateBingoCard,
+  generateBingoCard: generateBingoCardSafe,
+  buildBingoCard,
   cardNumbers,
   displayRows,
   evaluateCard,

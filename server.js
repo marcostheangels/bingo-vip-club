@@ -59,6 +59,18 @@ app.get('/api/source', (req, res) => {
 // Grava o HTML editado em public/index.html (com backup .bak). Requer sessão de ADMIN válida.
 const fs = require('fs');
 const INDEX_PATH = path.join(__dirname, 'public', 'index.html');
+
+// Remove conteúdo perigoso do HTML editável: <script>, on* handlers e URLs javascript:.
+function sanitizarHtml(html) {
+  let out = html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  out = out.replace(/<script\b[^>]*>/gi, '');
+  out = out.replace(/\son\w+\s*=\s*"[^"]*"/gi, '');
+  out = out.replace(/\son\w+\s*=\s*'[^']*'/gi, '');
+  out = out.replace(/\son\w+\s*=\s*[^\s>]+/gi, '');
+  out = out.replace(/(href|src)\s*=\s*("javascript:[^"]*"|'javascript:[^']*')/gi, '$1="#"');
+  return out;
+}
+
 app.post('/api/save-page', (req, res) => {
   const { sessionToken, cpf, html } = req.body || {};
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
@@ -77,14 +89,21 @@ app.post('/api/save-page', (req, res) => {
   if (Buffer.byteLength(html, 'utf8') > 1024 * 1024) {
     return res.status(413).json({ error: 'HTML muito grande.' });
   }
+  const limpo = sanitizarHtml(html);
+  // Validação mínima: preservar marcadores essenciais do jogo.
+  if (!/id="board-grid"/.test(limpo)) {
+    return res.status(400).json({ error: 'HTML inválido: faltam elementos essenciais do jogo.' });
+  }
   try {
-    // Backup antes de sobrescrever
+    // Backup antes de sobrescrever (mantém até 3 versões anteriores).
     try {
       const atual = fs.readFileSync(INDEX_PATH, 'utf8');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-');
+      fs.writeFileSync(INDEX_PATH + '.bak.' + ts, atual, 'utf8');
       fs.writeFileSync(INDEX_PATH + '.bak', atual, 'utf8');
     } catch (e) { /* ignora se não existir */ }
-    fs.writeFileSync(INDEX_PATH, html, 'utf8');
-    res.json({ ok: true, bytes: Buffer.byteLength(html, 'utf8') });
+    fs.writeFileSync(INDEX_PATH, limpo, 'utf8');
+    res.json({ ok: true, bytes: Buffer.byteLength(limpo, 'utf8') });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -97,7 +116,11 @@ if (process.env.TEST) {
 
 // ===== Painel administrativo (requer sessão de admin) =====
 function requireAdmin(req, res, next) {
-  const { sessionToken, cpf } = req.body || req.query || req.headers;
+  // Credenciais vêm do body (POST) ou da query (GET). Não aceita headers para
+  // evitar abuso via headers customizados em rotas POST.
+  const fonte = req.method === 'GET' ? (req.query || {}) : (req.body || {});
+  const sessionToken = fonte.sessionToken;
+  const cpf = fonte.cpf;
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
   const tokenKey = sessionToken && db.sessions.get(sessionToken);
   const u = cpfLimpo && db.users.get(cpfLimpo);
@@ -116,8 +139,9 @@ app.get('/api/admin/users', (req, res) => {
   if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
     return res.status(403).json({ error: 'Acesso negado.' });
   }
+  const botCpfs = new Set(require('./src/bots').BOT_DEFS.map((b) => b.cpf));
   const list = Array.from(db.users.values())
-    .filter((x) => !/^(\d)\1{10}$/.test(x.cpf))
+    .filter((x) => !botCpfs.has(x.cpf))
     .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, bonus: Number(x.bonus) || 0, admin: !!x.admin }));
   res.json({ users: list, state: round.publicState() });
 });
@@ -152,16 +176,16 @@ app.post('/api/admin/round', requireAdmin, (req, res) => {
   res.status(400).json({ error: 'ação inválida' });
 });
 
-// Ajusta saldo/bonus de um usuario (admin).
-// body: { cpfAlvo, field: 'balance'|'bonus', op: 'add'|'remove'|'set', amount }
-app.post('/api/admin/user', requireAdmin, (req, res) => {
+// Ajusta saldo/bonus/deposito de um usuario (admin).
+// body: { cpfAlvo, field: 'balance'|'bonus'|'deposito', op: 'add'|'remove'|'set', amount }
+app.post('/api/admin/user', requireAdmin, async (req, res) => {
   const cpfAlvo = req.body.cpfAlvo || req.body.cpf;
   const { field, op, amount, nome } = req.body || {};
   const cpfLimpo = String(cpfAlvo || '').replace(/\D/g, '');
   const u = db.users.get(cpfLimpo);
   if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
   if (nome) { u.nome = nome.trim(); db.markDirty(cpfLimpo); }
-  if (field === 'balance' || field === 'bonus') {
+  if (field === 'balance' || field === 'bonus' || field === 'deposito') {
     const v = parseFloat(String(amount).replace(',', '.'));
     if (isNaN(v) || v < 0) return res.status(400).json({ error: 'valor inválido' });
     const atual = Number(u[field]) || 0;
@@ -175,13 +199,13 @@ app.post('/api/admin/user', requireAdmin, (req, res) => {
   }
   db.saveUsers();
   if (u.sessionToken) {
-    // notifica o jogador logado sobre o novo saldo/bonus
+    // notifica o jogador logado sobre o novo saldo
     try {
       const io = require('./src/socket')._io;
-      if (io) io.of('/').sockets.forEach((s) => { if (s.data.cpf === cpfLimpo) { s.emit('saldo', { balance: u.balance, bonus: u.bonus }); } });
+      if (io) io.of('/').sockets.forEach((s) => { if (s.data.cpf === cpfLimpo) { s.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(cpfLimpo) }); } });
     } catch (e) {}
   }
-  res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance, bonus: u.bonus } });
+  res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance, bonus: u.bonus, deposito: u.deposito } });
 });
 
 // Lista pedidos de saque (admin)
@@ -197,17 +221,29 @@ app.get('/api/admin/saques', (req, res) => {
 });
 
 // Resolve pedido de saque: aprovar (já debitado) ou recusar (estorna)
-app.post('/api/admin/saque', requireAdmin, (req, res) => {
+app.post('/api/admin/saque', requireAdmin, async (req, res) => {
   const { id, status } = req.body || {};
-  if (!['pago', 'recusado'].includes(status)) return res.status(400).json({ error: 'status inválido' });
-  const pedido = db.listSaques().find((x) => x.id === id);
+  if (typeof id !== 'string' || !['pago', 'recusado'].includes(status)) return res.status(400).json({ error: 'status inválido' });
+  const pedido = (await db.listSaques()).find((x) => x.id === id);
   if (!pedido) return res.status(404).json({ error: 'pedido não encontrado' });
   if (pedido.status !== 'pendente') return res.status(400).json({ error: 'pedido já resolvido' });
   if (status === 'recusado') {
     const u = db.users.get(pedido.cpf);
     if (u) { u.balance = +(u.balance + pedido.valor).toFixed(2); db.markDirty(pedido.cpf); db.saveUsers(); }
   }
-  db.updateSaque(id, status);
+  await db.updateSaque(id, status);
+  // Notifica o jogador sobre a alteração de saldo (estorno ou confirmação).
+  if (pedido.cpf) {
+    try {
+      const io = require('./src/socket')._io;
+      if (io) io.of('/').sockets.forEach((s) => {
+        if (s.data.cpf === pedido.cpf) {
+          const u2 = db.users.get(pedido.cpf);
+          s.emit('saldo', { balance: u2.balance, bonus: u2.bonus, deposito: u2.deposito, saldoJogavel: db.saldoJogavel(pedido.cpf) });
+        }
+      });
+    } catch (e) {}
+  }
   res.json({ ok: true, pedido: { id, status } });
 });
 

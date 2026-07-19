@@ -14,16 +14,15 @@ const config = require('./config');
 const USERS_FILE = path.join(__dirname, '..', 'users.json');
 const DATABASE_URL = process.env.DATABASE_URL;
 
-let pg = null;       // pool do PostgreSQL (ou null)
-let pgClient = null; // cliente único (baixo tráfego)
+let pg = null;       // módulo pg (ou null)
+let pgPool = null;   // pool de conexões do PostgreSQL
 
 async function initDB() {
   if (DATABASE_URL) {
     try {
       pg = require('pg');
-      pgClient = new pg.Client({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
-      await pgClient.connect();
-      await pgClient.query(`
+      pgPool = new pg.Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 10 });
+      await pgPool.query(`
         CREATE TABLE IF NOT EXISTS users (
           cpf TEXT PRIMARY KEY,
           nome TEXT,
@@ -36,11 +35,11 @@ async function initDB() {
         );
       `);
       // Garante a coluna em tabelas antigas.
-      await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT FALSE`).catch(() => {});
-      await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus NUMERIC DEFAULT 0`).catch(() => {});
-      await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deposito NUMERIC DEFAULT 0`).catch(() => {});
+      await pgPool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT FALSE`).catch(() => {});
+      await pgPool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus NUMERIC DEFAULT 0`).catch(() => {});
+      await pgPool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deposito NUMERIC DEFAULT 0`).catch(() => {});
       // Tabela de estado da rodada em andamento (snapshot para retomar após queda).
-      await pgClient.query(`
+      await pgPool.query(`
         CREATE TABLE IF NOT EXISTS round_state (
           id TEXT PRIMARY KEY,
           state JSONB,
@@ -51,7 +50,7 @@ async function initDB() {
         );
       `);
       // Tabela de pedidos de saque.
-      await pgClient.query(`
+      await pgPool.query(`
         CREATE TABLE IF NOT EXISTS saques (
           id TEXT PRIMARY KEY,
           cpf TEXT,
@@ -63,7 +62,7 @@ async function initDB() {
         );
       `);
       // Carrega todos para o cache em memória.
-      const res = await pgClient.query('SELECT cpf, nome, email, chave_pix AS "chavePix", password, balance, session_token AS "sessionToken", COALESCE(admin, FALSE) AS "admin", COALESCE(bonus, 0) AS "bonus", COALESCE(deposito, 0) AS "deposito" FROM users');
+      const res = await pgPool.query('SELECT cpf, nome, email, chave_pix AS "chavePix", password, balance, session_token AS "sessionToken", COALESCE(admin, FALSE) AS "admin", COALESCE(bonus, 0) AS "bonus", COALESCE(deposito, 0) AS "deposito" FROM users');
       for (const row of res.rows) {
         users.set(row.cpf, {
           cpf: row.cpf,
@@ -81,7 +80,7 @@ async function initDB() {
       console.log('[db] PostgreSQL conectado. usuarios carregados:', users.size);
     } catch (e) {
       console.error('[db] Falha ao conectar PostgreSQL, usando users.json:', e.message);
-      pgClient = null;
+      pgPool = null;
       loadUsersFile();
     }
   } else {
@@ -105,9 +104,9 @@ function loadUsersFile() {
 
 // Salva o usuário no armazenamento de fundo (PG ou arquivo).
 async function persistUser(u) {
-  if (pgClient) {
+  if (pgPool) {
     try {
-      await pgClient.query(
+      await pgPool.query(
         `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin, bonus, deposito)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
          ON CONFLICT (cpf) DO UPDATE SET
@@ -159,9 +158,9 @@ function markDirty(cpf) {
 // ===== Pedidos de saque =====
 async function addSaque(pedido) {
   saques.unshift(pedido);
-  if (pgClient) {
+  if (pgPool) {
     try {
-      await pgClient.query(
+      await pgPool.query(
         `INSERT INTO saques (id, cpf, nome, valor, pix, status, created_at)
          VALUES ($1,$2,$3,$4,$5,$6,$7)
          ON CONFLICT (id) DO NOTHING`,
@@ -173,9 +172,9 @@ async function addSaque(pedido) {
 }
 
 async function listSaques() {
-  if (pgClient) {
+  if (pgPool) {
     try {
-      const r = await pgClient.query('SELECT * FROM saques ORDER BY created_at DESC');
+      const r = await pgPool.query('SELECT * FROM saques ORDER BY created_at DESC');
       return r.rows.map((x) => ({ id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, createdAt: Number(x.created_at) }));
     } catch (e) { console.error('[db] erro listSaques:', e.message); }
   }
@@ -185,8 +184,8 @@ async function listSaques() {
 async function updateSaque(id, status) {
   const s = saques.find((x) => x.id === id);
   if (s) s.status = status;
-  if (pgClient) {
-    try { await pgClient.query('UPDATE saques SET status=$1 WHERE id=$2', [status, id]); }
+  if (pgPool) {
+    try { await pgPool.query('UPDATE saques SET status=$1 WHERE id=$2', [status, id]); }
     catch (e) { console.error('[db] erro updateSaque:', e.message); }
   }
   return s;
@@ -194,9 +193,9 @@ async function updateSaque(id, status) {
 
 // ===== Snapshot da rodada em andamento (retomada após queda) =====
 async function saveRound(snapshot) {
-  if (!pgClient) return;
+  if (!pgPool) return;
   try {
-    await pgClient.query(
+    await pgPool.query(
       `INSERT INTO round_state (id, state, cards, card_seq, sorteio_seq, updated_at)
        VALUES ('current', $1, $2, $3, $4, $5)
        ON CONFLICT (id) DO UPDATE SET
@@ -208,9 +207,9 @@ async function saveRound(snapshot) {
 }
 
 async function loadRound() {
-  if (!pgClient) return null;
+  if (!pgPool) return null;
   try {
-    const r = await pgClient.query("SELECT * FROM round_state WHERE id='current'");
+    const r = await pgPool.query("SELECT * FROM round_state WHERE id='current'");
     if (r.rows.length === 0) return null;
     const row = r.rows[0];
     return {
@@ -223,8 +222,8 @@ async function loadRound() {
 }
 
 async function clearRound() {
-  if (!pgClient) return;
-  try { await pgClient.query("DELETE FROM round_state WHERE id='current'"); }
+  if (!pgPool) return;
+  try { await pgPool.query("DELETE FROM round_state WHERE id='current'"); }
   catch (e) { console.error('[db] erro clearRound:', e.message); }
 }
 
@@ -268,21 +267,29 @@ function ensureUser(cpf, dados) {
 
 
 // Tenta debitar 'valor' para jogar, na ordem: balance (sacavel) -> deposito -> bonus.
-// Retorna true se debitou (e ajusta os campos), false se insuficiente.
+// Retorna true se debitou (e ajusta os campos), false se insuficiente (reverte).
 function debitarParaJogar(cpf, valor) {
   const u = users.get(cpf);
   if (!u) return false;
-  let restante = +(valor).toFixed(2);
+  const valorAlvo = +(valor).toFixed(2);
+  const snapshot = { balance: Number(u.balance) || 0, deposito: Number(u.deposito) || 0, bonus: Number(u.bonus) || 0 };
+  let restante = valorAlvo;
   const pegar = (campo) => {
-    const disp = Number(u[campo]) || 0;
+    const disp = snapshot[campo];
     const usa = Math.min(disp, restante);
-    if (usa > 0) { u[campo] = +(disp - usa).toFixed(2); restante = +(restante - usa).toFixed(2); }
+    if (usa > 0) { u[campo] = +(snapshot[campo] - usa).toFixed(2); restante = +(restante - usa).toFixed(2); }
   };
   pegar('balance');
   pegar('deposito');
   pegar('bonus');
-  if (restante <= 0.001) { markDirty(cpf); return true; }
-  // reverte (não deveria acontecer pois checamos antes, mas segurança)
+  if (restante <= 0.001) {
+    markDirty(cpf);
+    return true;
+  }
+  // Insuficiente: restaura o snapshot para não deixar saldo inconsistente.
+  u.balance = snapshot.balance;
+  u.deposito = snapshot.deposito;
+  u.bonus = snapshot.bonus;
   return false;
 }
 
@@ -313,5 +320,5 @@ module.exports = {
   saveRound,
   loadRound,
   clearRound,
-  isPG: () => !!pgClient,
+  isPG: () => !!pgPool,
 };

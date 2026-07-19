@@ -1,5 +1,6 @@
 node_modules/
 npm-debug.log*
+# Nunca versionar segredos (em qualquer nível de pasta)
 .env
 .env.*
 !.env.example
@@ -21,9 +22,13 @@ test_*.js
 # Dados de usuarios (nao subir para o git)
 users.json
 
-# Backup local (zip)
+# Backup local (zip) — pode conter .env com credenciais
 BINGO2026_BACKUP*.zip
+*.backup.zip
+backup*.zip
 
 # Backup de index editado
 public/index.html.bak
+public/index.html.bak.*
+
 

@@ -20,8 +20,11 @@ socket.on('connect_error', (err) => {
 });
 
 // ===== Saldo =====
-socket.on('saldo', ({ balance }) => {
-  document.getElementById('balanceVal').textContent = brl(balance);
+socket.on('saldo', ({ balance, saldoJogavel }) => {
+  const el = document.getElementById('balanceVal');
+  if (el) el.textContent = brl(typeof saldoJogavel === 'number' ? saldoJogavel : balance);
+  if (typeof saldoJogavel === 'number') window.__saldoJogavel = saldoJogavel;
+  else window.__saldoJogavel = balance;
 });
 
 // ===== Minhas cartelas =====
