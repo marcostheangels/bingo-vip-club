@@ -247,8 +247,8 @@ function renderState(s) {
     if (btnComprar) btnComprar.disabled = true;
   } else if (s.status === 'finished') {
     if (banner) {
-      banner.classList.add('show');
-      banner.textContent = '🏁 Rodada encerrada! Próxima começando...';
+      banner.classList.remove('show');
+      banner.textContent = '';
     }
     if (overlay) overlay.classList.remove('show');
     if (buyPanel) buyPanel.classList.remove('buyable');
