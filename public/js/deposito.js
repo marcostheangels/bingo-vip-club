@@ -2,45 +2,6 @@
 (function () {
   let valorAtual = 0;
 
-  function montarPayloadPix(valor) {
-    function campo(id, valorCampo) {
-      const tamanho = String(valorCampo.length).padStart(2, '0');
-      return id + tamanho + valorCampo;
-    }
-    // Merchant Account Information (chave PIX)
-    const gui = 'BR.GOV.BCB.PIX';
-    const mai = campo('00', gui) + campo('01', PIX_KEY);
-    const maiCompleto = campo('26', mai);
-    // Additional Data (txid)
-    const additional = campo('05', '***');
-    const payloadSemCrc =
-      '000201' +
-      maiCompleto +
-      campo('52', '0000') +
-      campo('53', '986') +
-      campo('54', valor.toFixed(2)) +
-      campo('58', 'BR') +
-      campo('59', PIX_NOME.slice(0, 25)) +
-      campo('60', PIX_CIDADE.slice(0, 15)) +
-      campo('62', additional) +
-      '6304';
-    return payloadSemCrc + crc16(payloadSemCrc);
-  }
-
-  function crc16(payload) {
-    let polinomio = 0x1021;
-    let resultado = 0xFFFF;
-    for (let i = 0; i < payload.length; i++) {
-      resultado ^= payload.charCodeAt(i) << 8;
-      for (let j = 0; j < 8; j++) {
-        if (resultado << 1 & 0x10000) resultado = (resultado << 1) ^ polinomio;
-        else resultado = resultado << 1;
-        resultado &= 0xFFFF;
-      }
-    }
-    return resultado.toString(16).toUpperCase().padStart(4, '0');
-  }
-
   function abrirDeposito() {
     valorAtual = 0;
     const modal = document.getElementById('depModal');
@@ -61,25 +22,29 @@
       </div>
       <div class="dep-balance">Saldo atual: <b id="depSaldoAtual">${document.getElementById('balanceVal').textContent}</b></div>
       <div class="dep-quick">
+        <button class="dep-q" data-v="5">R$ 5</button>
         <button class="dep-q" data-v="10">R$ 10</button>
         <button class="dep-q" data-v="30">R$ 30</button>
         <button class="dep-q" data-v="50">R$ 50</button>
         <button class="dep-q" data-v="100">R$ 100</button>
         <button class="dep-q" data-v="200">R$ 200</button>
-        <button class="dep-q" data-v="500">R$ 500</button>
       </div>
       <div class="dep-custom">
         <span>R$</span>
-        <input id="depValor" type="number" min="1" placeholder="Outro valor" inputmode="numeric">
+        <input id="depValor" type="number" min="5" step="1" placeholder="Outro valor (mín. 5)" inputmode="numeric">
       </div>
+      <div class="dep-selecionado">Valor selecionado: <b id="depSelecionado">R$ 0,00</b></div>
       <button class="dep-confirm" id="depConfirm">Gerar PIX</button>
       <div class="dep-msg" id="depMsg"></div>
-      <div class="dep-hint">Pagamento via Pix. Escaneie o QR Code ou copie o código e pague no seu banco. Após o pagamento, seu saldo é creditado pelo administrador.</div>
+      <div class="dep-warn">⚠️ Atenção: o <b>Crédito (saldo sacável)</b> depositado aqui pode ser usado para jogar e sacado. O <b>Bônus</b> e eventuais prêmios têm regras próprias e <b>não são sacáveis</b>.</div>
+      <div class="dep-hint">Pagamento via Pix pela InfinitePay. Você será redirecionado para o checkout e, ao pagar, o saldo cai automaticamente na sua conta.</div>
     `;
   }
 
   function bindInicial() {
     const box = document.querySelector('#depModal .dep-box');
+    const sel = box.querySelector('#depSelecionado');
+    const atualizarSelecionado = () => { if (sel) sel.textContent = window.brl ? window.brl(valorAtual || 0) : (valorAtual || 0); };
     box.querySelectorAll('.dep-q').forEach((b) => {
       b.addEventListener('click', () => {
         box.querySelectorAll('.dep-q').forEach((x) => x.classList.remove('active'));
@@ -87,12 +52,14 @@
         const inp = box.querySelector('#depValor');
         if (inp) inp.value = '';
         valorAtual = +b.dataset.v;
+        atualizarSelecionado();
       });
     });
     const inp = box.querySelector('#depValor');
     if (inp) inp.addEventListener('input', () => {
       box.querySelectorAll('.dep-q').forEach((x) => x.classList.remove('active'));
       valorAtual = parseFloat(inp.value) || 0;
+      atualizarSelecionado();
     });
     box.querySelector('#depConfirm').addEventListener('click', confirmar);
   }
@@ -100,7 +67,7 @@
   function confirmar() {
     const v = parseFloat(String(valorAtual).replace(',', '.'));
     const msg = document.getElementById('depMsg');
-    if (!v || v < 1) { msg.className = 'dep-msg'; msg.textContent = 'Escolha um valor válido (mín. R$ 1,00).'; return; }
+    if (!v || v < 5) { msg.className = 'dep-msg'; msg.textContent = 'O valor mínimo de recarga é R$ 5,00.'; return; }
     criarDeposito(v);
   }
 

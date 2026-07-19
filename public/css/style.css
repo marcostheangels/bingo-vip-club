@@ -775,7 +775,15 @@ body.editor-active [contenteditable="true"]:hover {
 .dep-confirm:active { transform: translateY(2px); }
 .dep-msg { margin-top: 12px; text-align: center; font-size: 13px; min-height: 18px; color: #ff6b81; }
 .dep-msg.ok { color: var(--green); }
-.dep-hint { margin-top: 10px; text-align: center; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+ .dep-hint { margin-top: 10px; text-align: center; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+.dep-selecionado { margin: 2px 0 14px; text-align: center; font-size: 14px; color: var(--muted); }
+.dep-selecionado b { color: #fff; font-size: 20px; font-weight: 800; text-shadow: 0 0 14px rgba(52, 211, 153, 0.6); }
+.dep-warn {
+    margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-size: 11px; line-height: 1.5;
+    color: #ffd479; background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.4);
+}
+.dep-warn b { color: #ffe6a0; }
+
 
 /* Tela de pagamento PIX */
 .dep-pix { text-align: center; }

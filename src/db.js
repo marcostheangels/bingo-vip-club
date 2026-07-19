@@ -93,6 +93,24 @@ async function initDB() {
         });
       }
       console.log('[db] PostgreSQL conectado. usuarios carregados:', users.size);
+
+      // Carrega pedidos de depósito para o cache em memória.
+      try {
+        const depRows = await pgPool.query('SELECT * FROM depositos ORDER BY created_at DESC');
+        depositos.length = 0;
+        for (const x of depRows.rows) {
+          depositos.push({ id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, orderNsu: x.order_nsu, createdAt: Number(x.created_at) });
+        }
+      } catch (e) { console.error('[db] erro carregar depositos:', e.message); }
+
+      // Carrega pedidos de saque para o cache em memória.
+      try {
+        const saqRows = await pgPool.query('SELECT * FROM saques ORDER BY created_at DESC');
+        saques.length = 0;
+        for (const x of saqRows.rows) {
+          saques.push({ id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, createdAt: Number(x.created_at) });
+        }
+      } catch (e) { console.error('[db] erro carregar saques:', e.message); }
     } catch (e) {
       console.error('[db] Falha ao conectar PostgreSQL, usando users.json:', e.message);
       pgPool = null;
@@ -208,7 +226,6 @@ async function updateSaque(id, status) {
 
 // ===== Pedidos de depósito (PIX pago, aguarda aprovação do admin) =====
 async function addDeposito(pedido) {
-  depositos.unshift(pedido);
   if (pgPool) {
     try {
       await pgPool.query(
@@ -219,6 +236,7 @@ async function addDeposito(pedido) {
       );
     } catch (e) { console.error('[db] erro deposito PG:', e.message); }
   }
+  depositos.unshift(pedido);
   return pedido;
 }
 
@@ -242,9 +260,35 @@ async function updateDeposito(id, status) {
   return d;
 }
 
+// Atualiza só se ainda estiver 'pendente' (evita crédito duplo em concorrência).
+// Retorna o pedido se atualizou, ou null se já estava resolvido.
+async function updateDepositoAtomico(id, status) {
+  const d = depositos.find((x) => x.id === id);
+  if (d && d.status !== 'pendente') return null;
+  if (pgPool) {
+    try {
+      const r = await pgPool.query("UPDATE depositos SET status=$1 WHERE id=$2 AND status='pendente'", [status, id]);
+      if (r.rowCount === 0) return null;
+    } catch (e) { console.error('[db] erro updateDepositoAtomico:', e.message); return null; }
+  }
+  if (d) d.status = status;
+  return d;
+}
+
 // Busca um pedido de depósito pelo order_nsu (usado no webhook da InfinitePay).
-function findDepositoByOrder(orderNsu) {
-  return depositos.find((x) => x.orderNsu === orderNsu) || null;
+async function findDepositoByOrder(orderNsu) {
+  const local = depositos.find((x) => x.orderNsu === orderNsu);
+  if (local) return local;
+  if (pgPool) {
+    try {
+      const r = await pgPool.query('SELECT * FROM depositos WHERE order_nsu=$1', [orderNsu]);
+      if (r.rows[0]) {
+        const x = r.rows[0];
+        return { id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, orderNsu: x.order_nsu, createdAt: Number(x.created_at) };
+      }
+    } catch (e) { console.error('[db] erro findDepositoByOrder:', e.message); }
+  }
+  return null;
 }
 
 // ===== Snapshot da rodada em andamento (retomada após queda) =====
@@ -376,6 +420,7 @@ module.exports = {
   addDeposito,
   listDepositos,
   updateDeposito,
+  updateDepositoAtomico,
   findDepositoByOrder,
   saveRound,
   loadRound,

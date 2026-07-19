@@ -15,6 +15,7 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
+app.set('trust proxy', 1);
 app.use(express.json());
 // Evita 404 de /favicon.ico (recurso solicitado automaticamente pelos navegadores).
 app.get('/favicon.ico', (req, res) => res.status(204).end());
@@ -248,7 +249,7 @@ app.post('/api/admin/saque', requireAdmin, async (req, res) => {
 });
 
 // Lista pedidos de depósito (admin)
-app.get('/api/admin/depositos', (req, res) => {
+app.get('/api/admin/depositos', async (req, res) => {
   const { sessionToken, cpf } = req.query;
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
   const tokenKey = sessionToken && db.sessions.get(sessionToken);
@@ -256,7 +257,7 @@ app.get('/api/admin/depositos', (req, res) => {
   if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
     return res.status(403).json({ error: 'Acesso negado.' });
   }
-  res.json({ depositos: db.listDepositos() });
+  res.json({ depositos: await db.listDepositos() });
 });
 
 // Resolve pedido de depósito: aprovar (credita saldo) ou recusar (não credita)
@@ -265,7 +266,9 @@ app.post('/api/admin/deposito', requireAdmin, async (req, res) => {
   if (typeof id !== 'string' || !['pago', 'recusado'].includes(status)) return res.status(400).json({ error: 'status inválido' });
   const pedido = (await db.listDepositos()).find((x) => x.id === id);
   if (!pedido) return res.status(404).json({ error: 'pedido não encontrado' });
-  if (pedido.status !== 'pendente') return res.status(400).json({ error: 'pedido já resolvido' });
+  // Crédito idempotente: só credita se ainda estiver pendente.
+  const atualizado = await db.updateDepositoAtomico(id, status);
+  if (!atualizado) return res.status(400).json({ error: 'pedido já resolvido' });
   if (status === 'pago') {
     const u = db.users.get(pedido.cpf);
     if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
@@ -273,7 +276,6 @@ app.post('/api/admin/deposito', requireAdmin, async (req, res) => {
     db.markDirty(pedido.cpf);
     db.saveUsers();
   }
-  await db.updateDeposito(id, status);
   if (pedido.cpf) {
     try {
       const io = require('./src/socket')._io;
@@ -322,22 +324,24 @@ app.post('/api/deposito', async (req, res) => {
   if (!handle) return res.status(500).json({ error: 'InfinitePay não configurado (INFINITEPay_HANDLE).' });
 
   const orderNsu = 'D' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  const pedido = db.addDeposito({
+  const pedido = await db.addDeposito({
     id: orderNsu,
     cpf: cpfLimpo,
     nome: u.nome,
     valor: +v.toFixed(2),
-    pix: '',
+    pix: u.chavePix || '',
     status: 'pendente',
     orderNsu,
     createdAt: Date.now(),
   });
 
+  const baseRedirect = process.env.INFINITEPay_REDIRECT_URL || (req.protocol + '://' + req.get('host') + '/');
+  const baseWebhook = process.env.INFINITEPay_WEBHOOK_URL || (req.protocol + '://' + req.get('host') + '/api/webhook/infinitepay');
   const payload = {
     handle,
     order_nsu: orderNsu,
-    redirect_url: process.env.INFINITEPay_REDIRECT_URL || (req.protocol + '://' + req.get('host') + '/'),
-    webhook_url: process.env.INFINITEPay_WEBHOOK_URL || (req.protocol + '://' + req.get('host') + '/api/webhook/infinitepay'),
+    redirect_url: baseRedirect + (baseRedirect.includes('?') ? '&' : '?') + 'order_nsu=' + encodeURIComponent(orderNsu),
+    webhook_url: baseWebhook,
     items: [{ quantity: 1, price: Math.round(v * 100), description: 'Recarga Bingo VIP Club' }],
   };
 
@@ -366,17 +370,37 @@ app.post('/api/webhook/infinitepay', async (req, res) => {
     // Corpo documentado: { invoice_slug, amount, paid_amount, capture_method, transaction_nsu, order_nsu, receipt_url, ... }
     const orderNsu = body.order_nsu || (body.data && body.data.order_nsu);
     if (!orderNsu) return res.status(400).json({ error: 'order_nsu ausente' });
-    const pedido = db.findDepositoByOrder(orderNsu);
-    if (!pedido) return res.status(400).json({ error: 'pedido não encontrado' });
-    if (pedido.status === 'pago') return res.json({ ok: true, status: 'ja_creditado' });
 
-    // Credita o saldo do jogador.
+    // Validação opcional de assinatura (se INFINITEPay_WEBHOOK_SECRET configurado).
+    const secret = process.env.INFINITEPay_WEBHOOK_SECRET;
+    if (secret) {
+      const sig = req.headers['x-infinitepay-signature'] || req.headers['x-signature'];
+      if (sig) {
+        const crypto = require('crypto');
+        const expected = crypto.createHmac('sha256', secret).update(JSON.stringify(req.body)).digest('hex');
+        if (sig !== expected) return res.status(401).json({ error: 'assinatura inválida' });
+      }
+    }
+
+    const pedido = await db.findDepositoByOrder(orderNsu);
+    if (!pedido) return res.status(400).json({ error: 'pedido não encontrado' });
+
+    // Valida se o valor pago confere com o pedido (evita crédito fraudulento).
+    const amountCents = body.amount || body.paid_amount;
+    if (amountCents != null && Math.round(pedido.valor * 100) !== Math.round(Number(amountCents))) {
+      console.error('[webhook] valor não confere', pedido.valor, amountCents);
+      return res.status(400).json({ error: 'valor não confere' });
+    }
+
+    // Crédito idempotente: só credita se ainda estiver pendente.
+    const atualizado = await db.updateDepositoAtomico(pedido.id, 'pago');
+    if (!atualizado) return res.json({ ok: true, status: 'ja_creditado' });
+
     const u = db.users.get(pedido.cpf);
     if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
     u.balance = +(u.balance + pedido.valor).toFixed(2);
     db.markDirty(pedido.cpf);
     db.saveUsers();
-    await db.updateDeposito(pedido.id, 'pago');
 
     try {
       const io = require('./src/socket')._io;

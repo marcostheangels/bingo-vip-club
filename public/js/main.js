@@ -23,7 +23,8 @@
       const d = await r.json().catch(() => ({}));
       if (d.ok) {
         if (d.status === 'pago') {
-          mostrarAviso('✅ Pix enviado com sucesso! Seu saldo de ' + window.brl(d.valor) + ' foi creditado.', 'ok');
+          const vmtxt = Number(d.valor) ? window.brl(d.valor) : '';
+          mostrarAviso('✅ Pix enviado com sucesso!' + (vmtxt ? ' Seu saldo de ' + vmtxt + ' foi creditado.' : ''), 'ok');
         } else {
           mostrarAviso('⏳ Pagamento ainda não confirmado. Assim que o banco confirmar, o valor cai na sua conta.', 'info');
         }
