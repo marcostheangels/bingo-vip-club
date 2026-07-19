@@ -108,6 +108,21 @@
     gerarPix(v);
   }
 
+  // Garante que a biblioteca QRCode esteja disponível. Se o /js/qrcode.min.js
+  // der 404 (ausente no servidor) ou tiver sido removido do HTML pelo editor,
+  // tenta carregar de um CDN como fallback. Resolve true se disponível.
+  function ensureQRCode() {
+    return new Promise((resolve) => {
+      if (window.QRCode) return resolve(true);
+      const cdn = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      const s = document.createElement('script');
+      s.src = cdn;
+      s.onload = () => resolve(!!window.QRCode);
+      s.onerror = () => resolve(false);
+      document.head.appendChild(s);
+    });
+  }
+
   function gerarPix(valor) {
     const payload = montarPayloadPix(valor);
     const box = document.querySelector('#depModal .dep-box');
@@ -128,11 +143,13 @@
       </div>
     `;
     const qr = box.querySelector('#pixQr');
-    if (window.QRCode) {
-      new window.QRCode(qr, { text: payload, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M });
-    } else {
-      qr.innerHTML = '<div style="color:#333;font-size:11px;padding-top:60px">QR indisponível — use Copiar.</div>';
-    }
+    ensureQRCode().then((ok) => {
+      if (ok && window.QRCode) {
+        new window.QRCode(qr, { text: payload, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M });
+      } else {
+        qr.innerHTML = '<div style="color:#333;font-size:11px;padding-top:60px">QR indisponível — use Copiar o código PIX.</div>';
+      }
+    });
     box.querySelector('#pixCopy').addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(payload); box.querySelector('#pixCopy').textContent = '✓ Copiado'; setTimeout(() => box.querySelector('#pixCopy').textContent = 'Copiar', 1500); }
       catch { box.querySelector('#pixCode').select(); document.execCommand('copy'); }
