@@ -159,10 +159,10 @@ function finalizarRodada() {
   }
   broadcastState();
   db.clearRound();
-  // A animação/música do Keno dura 6s no cliente. Espera ela terminar (6s) MAIS
-  // 5s de pausa antes de iniciar a nova partida/contador (que toca a música inicial).
-  // Total = 11000ms: evita a música inicial sobrepor a do Keno.
-  setTimeout(comecarRodada, 11000);
+  // Ciclo completo após o Keno: animação/música do Keno dura 6s no cliente,
+  // termina, aguarda mais 6s de pausa, e só então entra o contador regressivo
+  // (que toca a música inicial). Total = 12000ms.
+  setTimeout(comecarRodada, 12000);
 }
 
 function comecarRodada() {
