@@ -817,4 +817,5 @@ body.editor-active [contenteditable="true"]:hover {
 .aviso-flutuante.ok { background: linear-gradient(145deg, #059669, #047857); }
 .aviso-flutuante.info { background: linear-gradient(145deg, #6366f1, #4f46e5); }
 .aviso-flutuante.erro { background: linear-gradient(145deg, #dc2626, #b91c1c); }
+.de-pix .pix-qr-img { width: 200px; height: 200px; margin: 0 auto 12px; background: #fff; border-radius: 14px; padding: 10px; display: block; }
 

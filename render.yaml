@@ -24,3 +24,7 @@ services:
         sync: false
       - key: INFINITEPay_REDIRECT_URL
         sync: false
+      - key: OPENPIX_TOKEN
+        sync: false
+      - key: OPENPIX_WEBHOOK_URL
+        sync: false

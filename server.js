@@ -308,9 +308,9 @@ app.get('/api/deposito/status', (req, res) => {
   res.json({ ok: true, status: pedido.status, valor: pedido.valor });
 });
 
-// ===== Depósito (jogador cria link PIX via InfinitePay) =====
+// ===== Depósito (jogador registra PIX pago com a chave do admin; aguarda aprovação) =====
 app.post('/api/deposito', async (req, res) => {
-  const { sessionToken, cpf, valor } = req.body || {};
+  const { sessionToken, cpf, valor, pix } = req.body || {};
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
   const tokenKey = sessionToken && db.sessions.get(sessionToken);
   const u = cpfLimpo && db.users.get(cpfLimpo);
@@ -318,48 +318,61 @@ app.post('/api/deposito', async (req, res) => {
     return res.status(401).json({ error: 'Sessão inválida.' });
   }
   const v = parseFloat(String(valor).replace(',', '.'));
-  if (!v || v < 1) return res.status(400).json({ error: 'Valor mínimo de depósito é R$ 1,00.' });
-
-  const handle = process.env.INFINITEPay_HANDLE;
-  if (!handle) return res.status(500).json({ error: 'InfinitePay não configurado (INFINITEPay_HANDLE).' });
-
-  const orderNsu = 'D' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  if (!v || v < 5) return res.status(400).json({ error: 'Valor mínimo de depósito é R$ 5,00.' });
+  const chave = String(pix || '').trim();
+  if (!chave) return res.status(400).json({ error: 'Informe a chave Pix.' });
+  const correlationID = 'D' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   const pedido = await db.addDeposito({
-    id: orderNsu,
+    id: correlationID,
     cpf: cpfLimpo,
     nome: u.nome,
     valor: +v.toFixed(2),
-    pix: u.chavePix || '',
+    pix: chave,
     status: 'pendente',
-    orderNsu,
+    orderNsu: correlationID,
     createdAt: Date.now(),
   });
+  res.json({ ok: true, pedido: { id: pedido.id, valor: pedido.valor, status: pedido.status } });
+});
 
-  const baseRedirect = process.env.INFINITEPay_REDIRECT_URL || (req.protocol + '://' + req.get('host') + '/');
-  const baseWebhook = process.env.INFINITEPay_WEBHOOK_URL || (req.protocol + '://' + req.get('host') + '/api/webhook/infinitepay');
-  const payload = {
-    handle,
-    order_nsu: orderNsu,
-    redirect_url: baseRedirect + (baseRedirect.includes('?') ? '&' : '?') + 'order_nsu=' + encodeURIComponent(orderNsu),
-    webhook_url: baseWebhook,
-    items: [{ quantity: 1, price: Math.round(v * 100), description: 'Recarga Bingo VIP Club' }],
-  };
-
+// ===== Webhook da OpenPix (opcional, caso use gateway no futuro) =====
+app.post('/api/webhook/openpix', async (req, res) => {
   try {
-    const r = await fetch('https://api.checkout.infinitepay.io/links', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.url) {
-      console.error('[infinitepay] erro criar link:', r.status, data);
-      return res.status(502).json({ error: 'Falha ao gerar link de pagamento.', detail: data });
+    const body = req.body || {};
+    const evento = body.evento || (body.data && body.data.evento) || (body.webhook && body.webhook.evento);
+    const charge = (body.payload && body.payload.charge) || (body.data && body.data.payload && body.data.payload.charge) || body.charge;
+    if (!charge || !charge.correlationID) return res.status(400).json({ error: 'correlationID ausente' });
+    if (evento && evento !== 'charge.completed' && charge.status !== 'COMPLETED' && charge.status !== 'paid') {
+      return res.json({ ok: true, ignorado: true });
     }
-    res.json({ ok: true, checkoutUrl: data.url, pedido: { id: pedido.id, valor: pedido.valor, status: pedido.status } });
+    const correlationID = charge.correlationID;
+    const pedido = await db.findDepositoByOrder(correlationID);
+    if (!pedido) return res.status(400).json({ error: 'pedido não encontrado' });
+    const amountCents = charge.value;
+    if (amountCents != null && Math.round(pedido.valor * 100) !== Math.round(Number(amountCents))) {
+      console.error('[openpix webhook] valor não confere', pedido.valor, amountCents);
+      return res.status(400).json({ error: 'valor não confere' });
+    }
+    const atualizado = await db.updateDepositoAtomico(pedido.id, 'pago');
+    if (!atualizado) return res.json({ ok: true, status: 'ja_creditado' });
+    const u = db.users.get(pedido.cpf);
+    if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
+    u.balance = +(u.balance + pedido.valor).toFixed(2);
+    db.markDirty(pedido.cpf);
+    db.saveUsers();
+    try {
+      const io = require('./src/socket')._io;
+      if (io) io.of('/').sockets.forEach((s) => {
+        if (s.data.cpf === pedido.cpf) {
+          const u2 = db.users.get(pedido.cpf);
+          s.emit('saldo', { balance: u2.balance, bonus: u2.bonus, deposito: u2.deposito, saldoJogavel: db.saldoJogavel(pedido.cpf) });
+        }
+      });
+    } catch (e) {}
+    return res.json({ ok: true, status: 'creditado' });
   } catch (e) {
-    console.error('[infinitepay] excecao:', e.message);
-    res.status(502).json({ error: 'Erro de comunicação com InfinitePay.' });
+    console.error('[webhook openpix] erro:', e.message);
+    return res.status(400).json({ error: 'erro no webhook' });
   }
 });
 
