@@ -695,16 +695,19 @@ body.editor-active [contenteditable="true"]:hover {
     .logo-text { font-size: 20px; }
 }
 @media (max-width: 860px) {
-    .main-container { flex-direction: column; overflow-y: auto; }
-    body { overflow-y: auto; }
-    .right-panel, .info-column { width: 100%; flex: none; }
-    .game-display { min-height: 240px; }
-    .prizes-row { flex-wrap: wrap; }
-    .prize-card { min-width: calc(50% - 8px); }
+    /* Mantem o layout de PC (3 colunas) tambem no celular, conforme solicitado */
+    body { overflow-x: auto; }
+    .main-container { flex-direction: row; overflow: visible; }
+    .right-panel { width: 320px; flex: 0 0 320px; }
+    .prize-card { min-width: 0; }
+    .main-ball { width: clamp(120px, 18vw, 200px); height: clamp(120px, 18vw, 200px); }
 }
 @media (max-width: 600px) {
-    .prizes-row { flex-direction: column; }
-    .prize-card { min-width: 100%; }
+    /* Mantem o layout de PC no celular (nao empilha) */
+    body { overflow-x: auto; }
+    .main-container { flex-direction: row; }
+    .right-panel { width: 300px; flex: 0 0 300px; }
+    .prize-card { min-width: 0; }
     .qty-row { justify-content: center; }
     .buy-controls { flex-wrap: wrap; justify-content: center; }
     .buy-total { margin-left: 0; order: 3; width: 100%; justify-content: center; margin-top: 8px; }
