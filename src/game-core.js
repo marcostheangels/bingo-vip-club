@@ -22,6 +22,8 @@ function novaRodada() {
     phaseIndex: 0,
     winners: { kuadra: null, kina: null, keno: null },
     startsAt: Date.now() + config.INTERMISSION,
+    pausado: false,
+    fasePausada: null,
   });
 }
 

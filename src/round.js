@@ -58,17 +58,25 @@ function checarVencedores() {
     };
     io.emit('winner', { phase, prize: config.PRIZES[phase], vencedores });
 
-    // Pausa o sorteio durante a animação de vitória para dar espaço aos jogadores.
+    // PARA IMEDIATAMENTE o sorteio ao fechar uma fase: nenhuma bola extra é
+    // sorteada até o overlay de vitória fechar. A próxima fase só recomeça
+    // após o tempo de comemoração.
     if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
     if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
+    core.state.pausado = true;
+    core.state.fasePausada = phase;
+    broadcastState();
     const faseAtual = phase;
     core.resumeTimer = setTimeout(() => {
       core.resumeTimer = null;
       // Só retoma se a rodada ainda estiver ativa e não for a última fase (Keno encerra tudo).
       if (faseAtual !== 'keno' && core.state.status === 'running' && !core.state.winners.keno) {
+        core.state.pausado = false;
+        core.state.fasePausada = null;
         if (!core.drawTimer) core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+        broadcastState();
       }
-    }, 3500);
+    }, 4500);
   }
 
   // Acumulado: Keno fechado até a bola ACUMULADO_BALLS => prêmio extra para os vencedores do Keno.
@@ -89,6 +97,7 @@ function checarVencedores() {
 }
 
 function sortearBolaLoop() {
+  if (core.state.status !== 'running' || core.state.pausado) return;
   const r = core.sortearBola();
   if (r.fim) {
     finalizarRodada();
@@ -232,6 +241,8 @@ function publicState() {
     phaseIndex,
     winners: core.state.winners,
     startsAt: core.state.startsAt,
+    pausado: !!core.state.pausado,
+    fasePausada: core.state.fasePausada || null,
     prizes: config.PRIZES,
     acumuladoBalls: config.ACUMULADO_BALLS,
     acumuladoAberto: !core.state.winners.keno && core.state.drawnBalls.length <= config.ACUMULADO_BALLS,

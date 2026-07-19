@@ -97,6 +97,13 @@ function renderState(s) {
 
   renderPhasePanel(s);
   updateStatusBanner(s);
+  // Indicador de "fase conquistada / sorteio pausado"
+  const phasePanel = document.getElementById('phasePanel');
+  if (s.pausado && s.fasePausada) {
+    phasePanel.classList.add('fase-pausada');
+  } else {
+    phasePanel.classList.remove('fase-pausada');
+  }
   // Mapa 90 bolas
   const emIntermission = s.status === 'intermission';
   const emFinished = s.status === 'finished';
@@ -217,6 +224,14 @@ function updateCountdown() {
     timeEl.classList.toggle('urgent', secs <= 10);
   }
   if (badge) badge.textContent = `ABERTO • ${secs}s`;
+  // Mantém o painel "Quem está perto" e a fase atualizados durante a
+  // intermission (mostra as cartelas novas de cada jogador a cada tick).
+  // Guarda contra recursão: renderState() também chama updateCountdown().
+  if (!window.__emUpdateCountdown && typeof window.renderState === 'function') {
+    window.__emUpdateCountdown = true;
+    try { window.renderState(st); } catch (e) {}
+    window.__emUpdateCountdown = false;
+  }
 }
 setInterval(updateCountdown, 250);
 console.log('[bingo] ui.js carregado — CLIENT_VER=' + (window.CLIENT_VER || '?'));
