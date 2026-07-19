@@ -56,6 +56,16 @@ function renderPhasePanel(s) {
 
 function renderState(s) {
   window.setGameState(s);
+  // Fecha overlays de vitoria/jackpot por estado: se comecou nova rodada (intermission)
+  // ou o numero do sorteio mudou, nada pode ficar cobrindo a tela.
+  if (s.status === 'intermission' || (window.__lastSorteio != null && window.__lastSorteio !== s.sorteio)) {
+    const winOv = document.getElementById('winOverlay');
+    if (winOv) winOv.classList.remove('show');
+    const jpOv = document.getElementById('jackpotOverlay');
+    if (jpOv) jpOv.classList.remove('show');
+    if (window.winTimer) { clearTimeout(window.winTimer); window.winTimer = null; }
+  }
+  window.__lastSorteio = s.sorteio;
   document.getElementById('sorteioId').textContent = '#' + s.sorteio;
   const doacaoEl = document.getElementById('doacaoVal');
   if (doacaoEl) doacaoEl.textContent = brl(s.cardCost);

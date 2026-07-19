@@ -21,7 +21,7 @@ function novaRodada() {
     drawnBalls: [],
     currentBall: null,
     phaseIndex: 0,
-    winners: { kuadra: null, kina: null, keno: null },
+    winners: { kuadra: null, kina: null, keno: null, acumulado: null },
     startsAt: Date.now() + config.INTERMISSION,
     pausado: false,
     fasePausada: null,
