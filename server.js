@@ -16,6 +16,8 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
+// Evita 404 de /favicon.ico (recurso solicitado automaticamente pelos navegadores).
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 // Anti-cache para assets (js/css/html) — garante que o navegador sempre baixe
 // a versão mais recente, evitando o bug de "só funciona após F5".
 app.use((req, res, next) => {
