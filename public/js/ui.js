@@ -355,14 +355,15 @@ function comprarCartelas() {
   });
 }
 
-// ===== Zoom cartelas (apenas 2 niveis: 1x = 90px, 2x = 140px) =====
-const ZOOM_NIVEIS = [90, 140];
+// ===== Zoom cartelas (apenas 2 niveis: 1x = 100px, 2x = 150px) =====
+// maximo 3 cartelas por linha (grid de 3 colunas no CSS); zoom ajusta o tamanho de cada cartela
+const ZOOM_NIVEIS = [100, 150];
 let zoomNivel = 0; // indice em ZOOM_NIVEIS (0 = 1x, 1 = 2x) - comeca no 1x
 let cardW = ZOOM_NIVEIS[zoomNivel];
 function aplicarZoom() {
   cardW = ZOOM_NIVEIS[zoomNivel];
   const grid = document.getElementById('myCardsGrid');
-  if (grid) grid.style.setProperty('--cardw', cardW + 'px');
+  if (grid) grid.style.setProperty('--cardw', cardW + 'px'); // herda para .ticket3d filhas
 }
 function zoom(delta) {
   zoomNivel = Math.max(0, Math.min(ZOOM_NIVEIS.length - 1, zoomNivel + delta));
