@@ -138,6 +138,7 @@ async function restaurarRodada() {
 function iniciarSorteio() {
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
+  if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.iniciarSorteio();
   broadcastState();
   core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
@@ -147,6 +148,7 @@ function finalizarRodada() {
   if (core.state.status === 'finished') return;
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
+  if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.finalizarRodada();
   broadcastState();
   db.clearRound();
@@ -156,12 +158,20 @@ function finalizarRodada() {
 function comecarRodada() {
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
+  if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.novaRodada();
   broadcastState();
   db.clearRound();
   core.drawTimer = null;
   emitMyCardsParaTodos();
   if (process.env.BOTS === '1') bots.botComprarCartelas(core.roundCards, db.users);
+  // Emite o estado a cada 1s durante a intermission para manter o cliente
+  // sincronizado: contador regressivo, botão de compra habilitado e painel
+  // de jogadores atualizado com as cartelas novas.
+  core.intermissionTimer = setInterval(() => {
+    if (core.state.status === 'intermission') broadcastState();
+    else { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
+  }, 1000);
   setTimeout(iniciarSorteio, config.INTERMISSION);
 }
 

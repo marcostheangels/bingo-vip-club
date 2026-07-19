@@ -7,6 +7,7 @@ let cardSeq = 5000;
 let sorteioSeq = 131937;
 let drawTimer = null;
 let resumeTimer = null;
+let intermissionTimer = null;
 
 // ===== Estado do jogo (rodada) =====
 const state = {};
@@ -58,6 +59,8 @@ module.exports = {
   set drawTimer(v) { drawTimer = v; },
   get resumeTimer() { return resumeTimer; },
   set resumeTimer(v) { resumeTimer = v; },
+  get intermissionTimer() { return intermissionTimer; },
+  set intermissionTimer(v) { intermissionTimer = v; },
   state,
   novaRodada,
   iniciarSorteio,
