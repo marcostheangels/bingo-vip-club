@@ -73,35 +73,37 @@
                 </div>
             </div>
 
-            <!-- 5. BOLA + PAINEL DA FASE -->
+            <!-- 5. BOLA + PAINEL DA FASE + PAINEL DE BOLAS SORTEADAS -->
             <div class="game-display" data-src="ui.js|style.css">
                 <div class="countdown-overlay" id="countdownOverlay">
                     <div class="countdown-label">PRÓXIMA PARTIDA EM</div>
                     <div class="countdown-time" id="countdownTime">60</div>
                     <div class="countdown-hint">🎟️ Compre suas cartelas agora!</div>
                 </div>
-                <div class="main-ball" id="mainBall">--</div>
-                <div class="phase-panel" id="phasePanel" data-src="style.css|ui.js">
-                    <div class="phase-eyebrow">FASE EM DISPUTA</div>
-                    <div class="phase-name" id="phaseName">KUADRA</div>
-                    <div class="phase-sub" id="phaseSub">4 números em uma linha</div>
-                    <div class="phase-prize" id="phasePrize">R$ 20,00</div>
-                    <div class="phase-stats">
-                        <div class="pstat"><span class="pstat-val" id="phaseBalls">0</span><span class="pstat-lbl">bolas sorteadas</span></div>
-                        <div class="pstat"><span class="pstat-val" id="phaseBest">—</span><span class="pstat-lbl">sua melhor cartela</span></div>
+                <div class="game-left">
+                    <div class="main-ball" id="mainBall">--</div>
+                    <div class="phase-panel" id="phasePanel" data-src="style.css|ui.js">
+                        <div class="phase-eyebrow">FASE EM DISPUTA</div>
+                        <div class="phase-name" id="phaseName">KUADRA</div>
+                        <div class="phase-sub" id="phaseSub">4 números em uma linha</div>
+                        <div class="phase-prize" id="phasePrize">R$ 20,00</div>
+                        <div class="phase-stats">
+                            <div class="pstat"><span class="pstat-val" id="phaseBalls">0</span><span class="pstat-lbl">bolas sorteadas</span></div>
+                            <div class="pstat"><span class="pstat-val" id="phaseBest">—</span><span class="pstat-lbl">sua melhor cartela</span></div>
+                        </div>
+                        <div class="phase-progress" id="phaseProgress"></div>
                     </div>
-                    <div class="phase-progress" id="phaseProgress"></div>
+                </div>
+
+                <!-- PAINEL DE BOLAS SORTEADAS (1 a 90) - ao lado do painel da fase -->
+                <div class="balls-board" data-src="style.css|ui.js">
+                    <div class="balls-board-title">BOLAS SORTEADAS</div>
+                    <div class="balls-grid" id="board-grid"></div>
                 </div>
             </div>
 
             <!-- ACUMULADO (bolas sorteadas) - proximo ao painel de bolas 1 a 90 -->
             <div class="ordem-box"><span>ACUMULADO</span><div class="acumulado-count" id="drawnCount">0</div><span class="acumulado-legenda">bolas sorteadas</span></div>
-
-            <!-- 6. MAPA DE 90 BOLAS (mesmo lugar de antes, só com altura maior) -->
-            <div class="balls-board" data-src="style.css|ui.js">
-                <div class="balls-board-title">BOLAS SORTEADAS</div>
-                <div class="balls-grid" id="board-grid"></div>
-            </div>
         </div>
 
         <!-- 7. PAINEL LATERAL DIREITO -->

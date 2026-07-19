@@ -204,9 +204,13 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 
 /* 5. AREA DO SORTEIO CENTRALIZADO */
 .game-display {
-    flex: 1 1 auto; display: flex; align-items: center; justify-content: flex-start; gap: 28px;
+    flex: 1 1 auto; display: flex; align-items: stretch; justify-content: flex-start; gap: 28px;
     position: relative; padding: clamp(12px, 2vw, 20px); min-height: 0;
     background: rgba(255, 255, 255, 0.02); border-radius: 16px;
+}
+.game-left {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    flex: 1 1 0; min-width: 0;
 }
 .main-ball {
     width: clamp(150px, 22vw, 260px); height: clamp(150px, 22vw, 260px); border-radius: 50%; flex-shrink: 0; align-self: center;
@@ -348,9 +352,9 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* ===== 6. MAPA 90 BOLAS (area central, abaixo do sorteio) ===== */
 .balls-board {
     background: linear-gradient(160deg, rgba(20, 28, 66, .75), rgba(8, 12, 38, .75));
-    border-radius: 16px; padding: 12px; flex: 0 0 auto; height: clamp(150px, 20vh, 220px);
+    border-radius: 16px; padding: 12px; flex: 1 1 0; min-width: 0;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    overflow: hidden; width: 100%; display: flex; flex-direction: column; gap: 6px;
+    overflow: hidden; display: flex; flex-direction: column; gap: 6px;
 }
 .balls-board-title {
     font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--yellow);
