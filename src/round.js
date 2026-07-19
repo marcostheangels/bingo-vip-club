@@ -167,7 +167,21 @@ function publicState() {
       const f = game.faltaForPhase(c.card, core.state.drawnBalls, phaseAtual);
       if (f < melhorFalta) melhorFalta = f;
     }
-    players.push({ id: u ? u.cpf : owner, name: u ? u.nome : owner, falta: melhorFalta });
+    // Fases que este jogador JA fechou nesta rodada (badge fixo no painel).
+    const ganhou = [];
+    for (const ph of game.PHASE_SEQUENCE) {
+      if (ph === 'keno') continue; // keno tem tratamento proprio
+      const ev = game.evaluateCard(cards[0].card, core.state.drawnBalls);
+      if (ev[ph].done) ganhou.push(ph);
+    }
+    // checa todas as cartelas do jogador (pode ter feito em outra cartela)
+    for (const c of cards) {
+      for (const ph of game.PHASE_SEQUENCE) {
+        if (ph === 'keno') continue;
+        if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
+      }
+    }
+    players.push({ id: u ? u.cpf : owner, name: u ? u.nome : owner, falta: melhorFalta, ganhou });
   }
   players.sort((a, b) => a.falta - b.falta);
 

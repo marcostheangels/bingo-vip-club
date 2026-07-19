@@ -115,6 +115,8 @@ function renderState(s) {
     playersContainer.innerHTML = '';
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
     document.getElementById('fasePainel').textContent = '— ' + NOME[faseAtual];
+    window.__playersGanhou = {};
+    (s.players || []).forEach((p) => { if (p.ganhou && p.ganhou.length) window.__playersGanhou[p.id] = p.ganhou; });
 
     // ===== Lista da fase atual (quem está perto) =====
     const lista = ((s.ranking && s.ranking[faseAtual]) || []).slice();
@@ -133,6 +135,9 @@ function renderState(s) {
         } else {
           balls = faltantes.map((n) => `<span class="pballmini" title="${n}">${n}</span>`).join('');
         }
+        // Badges de fases ja ganhas por este jogador (fixos no nome).
+        const ganhou = (window.__playersGanhou && window.__playersGanhou[item.owner]) || [];
+        const badgesGanhou = ganhou.map((ph) => `<span class="fase-badge-won sm" title="Fez ${NOME[ph]}">✓ ${NOME[ph].toUpperCase()}</span>`).join(' ');
         const row = document.createElement('div');
         row.className = 'player-row' + (isMe ? ' me' : '') + (item.done ? ' done-row' : '');
         row.dataset.owner = item.owner;
@@ -140,7 +145,7 @@ function renderState(s) {
         row.innerHTML = `
           <span class="prank">${i + 1}</span>
           <span class="pcode">${isMe ? '★' : ''}#${item.cardId}</span>
-          <span class="player-name">${item.name}</span>
+          <span class="player-name">${item.name} ${badgesGanhou}</span>
           <div class="pballs">${balls}</div>`;
         playersContainer.appendChild(row);
       });
