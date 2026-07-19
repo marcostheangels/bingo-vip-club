@@ -1,5 +1,6 @@
 const game = require('./game');
 const core = require('./game-core');
+const db = require('./db');
 
 // ===== Bots de teste (apenas com BOTS=1) =====
 const BOT_DEFS = [
@@ -19,6 +20,10 @@ function garantirBots(users) {
   for (const b of BOT_DEFS) {
     if (!users.has(b.cpf)) {
       users.set(b.cpf, { cpf: b.cpf, nome: b.nome, email: b.cpf + '@bot', chavePix: b.cpf, password: 'bot', balance: 999, sessionToken: null });
+    } else {
+      // Sempre atualiza o nome para remover eventuais "Robo ..." antigos.
+      const u = users.get(b.cpf);
+      if (u && u.nome !== b.nome) { u.nome = b.nome; db.markDirty(b.cpf); }
     }
   }
 }

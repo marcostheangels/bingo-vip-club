@@ -220,27 +220,10 @@
             <div class="dep-hint">O saque é analisado pelo administrador e pago via Pix. Informe a chave cadastrada no seu perfil.</div>
         </div>
     </div>
-        <div class="dep-box">
-            <div class="dep-head">
-                <span class="dep-title">💰 Recarregar Saldo</span>
-                <button class="dep-close" id="depClose" onclick="fecharDeposito()">✕</button>
-            </div>
-            <div class="dep-balance">Saldo atual: <b id="depSaldoAtual">R$ 0,00</b></div>
-            <div class="dep-quick">
-                <button class="dep-q" data-v="10">R$ 10</button>
-                <button class="dep-q" data-v="30">R$ 30</button>
-                <button class="dep-q" data-v="50">R$ 50</button>
-                <button class="dep-q" data-v="100">R$ 100</button>
-                <button class="dep-q" data-v="200">R$ 200</button>
-            </div>
-            <div class="dep-custom">
-                <span>R$</span>
-                <input id="depValor" type="number" min="1" placeholder="Outro valor" inputmode="numeric">
-            </div>
-            <button class="dep-confirm" id="depConfirm">Confirmar Depósito</button>
-            <div class="dep-msg" id="depMsg"></div>
-            <div class="dep-hint">Pagamento via Pix. Em breve a integração automática — sua recarga será creditada pelo administrador.</div>
-        </div>
+
+    <!-- Modal de Depósito (abre ao clicar em Depósito, igual ao Saque) -->
+    <div class="dep-modal" id="depModal">
+        <div class="dep-box"></div>
     </div>
 
     </body>

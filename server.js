@@ -300,6 +300,12 @@ socket.init(server);
 // Inicia a primeira rodada após carregar os usuários (PostgreSQL ou arquivo).
 (async function boot() {
   await db.initDB();
+  // Garante nomes de pessoas nos bots conhecidos (remove eventuais "Robo ...").
+  for (const b of bots.BOT_DEFS) {
+    const u = db.users.get(b.cpf);
+    if (u && u.nome !== b.nome) { u.nome = b.nome; db.markDirty(b.cpf); }
+  }
+  db.saveUsers();
   const retomou = await round.restaurarRodada();
   if (!retomou) round.comecarRodada();
 
