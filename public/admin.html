@@ -7,88 +7,188 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-  :root{ --neon:#8b5cff; --neon-2:#22d3ee; --yellow:#FFD700; --text:#f3f1ff; --muted:#9d96d4; --bg:#05052e; }
+  :root{ --neon:#8b5cff; --neon-2:#22d3ee; --green:#34d399; --red:#ff5d5d; --yellow:#FFD700; --text:#f3f1ff; --muted:#9d96d4; --bg:#07071a; --panel:rgba(20,26,62,0.7); --panel-2:rgba(8,10,32,0.6); }
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-  body{background:linear-gradient(180deg,#05052e,#04042a);color:var(--text);min-height:100vh;padding:24px;}
-  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
-  .logo-text{font-weight:800;font-size:26px;letter-spacing:2px;background:linear-gradient(180deg,#E8C87A,#B8860B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
-  button{cursor:pointer;border:none;border-radius:10px;padding:10px 14px;font-weight:700;background:linear-gradient(145deg,var(--neon),var(--neon-2));color:#fff;}
-  button.ghost{background:rgba(255,255,255,.08);color:var(--text);}
-  button.danger{background:linear-gradient(145deg,#ff5d5d,#b91c1c);}
-  .card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:18px;}
-  .card h2{font-size:16px;margin-bottom:12px;color:var(--yellow);}
-  table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
-  th{color:var(--muted);font-weight:600;}
+  body{background:radial-gradient(circle at 20% 0%,#1a1450 0%,var(--bg) 55%);color:var(--text);min-height:100vh;}
+  a{color:var(--neon-2);text-decoration:none;}
+
+  /* Sidebar */
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:230px;background:var(--panel-2);border-right:1px solid rgba(255,255,255,.08);padding:22px 16px;display:flex;flex-direction:column;gap:8px;z-index:10;}
+  .brand{font-weight:800;font-size:18px;letter-spacing:1px;background:linear-gradient(180deg,#E8C87A,#B8860B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:18px;}
+  .nav-btn{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;cursor:pointer;color:var(--muted);font-weight:600;font-size:14px;border:1px solid transparent;transition:.15s;}
+  .nav-btn:hover{background:rgba(255,255,255,.05);color:var(--text);}
+  .nav-btn.active{background:linear-gradient(145deg,rgba(139,92,255,.25),rgba(34,211,238,.18));color:#fff;border-color:rgba(139,92,255,.4);}
+  .nav-btn .material-icons{font-size:20px;}
+  .side-foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;}
+
+  /* Main */
+  .main{margin-left:230px;padding:26px 30px;max-width:1200px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+  .topbar h1{font-size:22px;font-weight:800;}
+  .topbar .who{color:var(--muted);font-size:13px;}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;}
+  .stat{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 18px;}
+  .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .stat .v{font-size:24px;font-weight:800;margin-top:6px;}
+  .stat.green .v{color:var(--green);} .stat.red .v{color:var(--red);} .stat.purple .v{color:var(--neon);} .stat.blue .v{color:var(--neon-2);}
+
+  .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:20px;margin-bottom:22px;display:none;}
+  .card.active{display:block;}
+  .card h2{font-size:16px;margin-bottom:14px;color:var(--yellow);display:flex;align-items:center;gap:8px;}
+
+  /* Rodada */
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  input{padding:9px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.3);color:#fff;font-size:14px;}
-  .msg{margin-top:10px;font-size:13px;min-height:18px;color:#ff6b81;}
-  .ok{color:#34d399;}
-  .badge{font-size:10px;background:var(--neon);padding:2px 6px;border-radius:6px;color:#fff;}
-  .state span{display:inline-block;margin-right:14px;font-size:13px;color:var(--muted);}
-  .state b{color:var(--text);}
+  button{cursor:pointer;border:none;border-radius:11px;padding:11px 15px;font-weight:700;font-size:14px;background:linear-gradient(145deg,var(--neon),var(--neon-2));color:#fff;transition:.12s;}
+  button:hover{filter:brightness(1.08);}
+  button.ghost{background:rgba(255,255,255,.08);color:var(--text);}
+  button.danger{background:linear-gradient(145deg,var(--red),#b91c1c);}
+  button.green{background:linear-gradient(145deg,#34d399,#059669);}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  input{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.3);color:#fff;font-size:14px;outline:none;}
+  input:focus{border-color:var(--neon);}
+  .msg{margin-top:10px;font-size:13px;min-height:18px;color:var(--red);}
+  .msg.ok{color:var(--green);}
+
+  /* Tabelas */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.07);}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;}
+  .badge{font-size:9px;background:var(--neon);padding:2px 6px;border-radius:6px;color:#fff;margin-left:4px;}
+  .pill{font-size:10px;padding:2px 7px;border-radius:20px;}
+  .pill.pendente{background:rgba(255,211,77,.2);color:var(--yellow);}
+  .pill.pago{background:rgba(52,211,153,.2);color:var(--green);}
+  .pill.recusado{background:rgba(255,93,93,.2);color:var(--red);}
+  .saldo-cell b{color:var(--green);} .saldo-cell .dep{color:var(--neon-2);} .saldo-cell .bon{color:var(--yellow);}
+
+  /* Modal usuario */
+  .overlay{position:fixed;inset:0;background:rgba(3,3,25,.8);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{width:100%;max-width:420px;background:linear-gradient(160deg,rgba(20,26,62,.97),rgba(8,10,32,.97));border:1px solid rgba(139,92,255,.35);border-radius:18px;padding:22px;}
+  .modal h3{margin-bottom:14px;font-size:17px;}
+  .seg{display:flex;gap:6px;margin:10px 0;}
+  .seg button{flex:1;background:rgba(255,255,255,.06);}
+  .seg button.sel{background:linear-gradient(145deg,var(--neon),var(--neon-2));}
+  .ops{display:flex;gap:6px;margin:10px 0;}
+  .ops button{flex:1;background:rgba(255,255,255,.06);}
+  .ops button.sel{background:linear-gradient(145deg,#34d399,#059669);}
+  .modal .linha{display:flex;gap:8px;margin-top:8px;}
+  .modal .linha input{flex:1;}
+  @media(max-width:760px){ .sidebar{display:none;} .main{margin-left:0;padding:16px;} }
 </style>
 </head>
 <body>
+
+<aside class="sidebar">
+  <div class="brand">BINGO VIP CLUB</div>
+  <div class="nav-btn active" data-tab="visao" onclick="trocar('visao')"><span class="material-icons">dashboard</span>Visão Geral</div>
+  <div class="nav-btn" data-tab="rodada" onclick="trocar('rodada')"><span class="material-icons">casino</span>Rodada</div>
+  <div class="nav-btn" data-tab="usuarios" onclick="trocar('usuarios')"><span class="material-icons">group</span>Jogadores</div>
+  <div class="nav-btn" data-tab="saques" onclick="trocar('saques')"><span class="material-icons">payments</span>Saques</div>
+  <div class="side-foot">
+    <a class="nav-btn" href="/?edit=1"><span class="material-icons">edit</span>Editar Jogo</a>
+    <button class="ghost" onclick="logout()"><span class="material-icons">logout</span>Sair</button>
+  </div>
+</aside>
+
+<main class="main">
   <div class="topbar">
-    <span class="logo-text">BINGO VIP CLUB — ADMIN</span>
-    <div class="row">
-      <a class="btn-action" href="/?edit=1" style="text-decoration:none"><button class="ghost">✏️ Editar Página do Jogo</button></a>
-      <button class="ghost" onclick="logout()">Sair</button>
-    </div>
+    <div><h1>Painel Administrativo</h1><div class="who" id="who"></div></div>
   </div>
 
-  <div class="card state" id="stateBox">Carregando estado...</div>
+  <!-- VISAO GERAL -->
+  <section class="card active" id="tab-visao">
+    <div class="stats" id="statsBox"></div>
+    <div class="card" style="display:block;margin:0">
+      <h2><span class="material-icons">info</span> Status da Rodada Atual</h2>
+      <div id="stateBox" style="font-size:13px;color:var(--muted);line-height:2"></div>
+    </div>
+  </section>
 
-  <div class="card">
-    <h2>Controle da Rodada</h2>
+  <!-- RODADA -->
+  <section class="card" id="tab-rodada">
+    <h2><span class="material-icons">casino</span> Controle da Rodada</h2>
     <div class="row">
       <button onclick="acaoRodada('nova')">🔄 Nova Rodada</button>
-      <button onclick="acaoRodada('pausar')">⏸️ Pausar Sorteio</button>
-      <button onclick="acaoRodada('iniciar')">▶️ Iniciar Sorteio</button>
+      <button class="ghost" onclick="acaoRodada('pausar')">⏸️ Pausar</button>
+      <button class="green" onclick="acaoRodada('iniciar')">▶️ Iniciar</button>
     </div>
-    <div class="row" style="margin-top:14px">
-      <span>Forçar vitória:</span>
-      <button onclick="forcar('kuadra')">Kuadra</button>
-      <button onclick="forcar('kina')">Kina</button>
-      <button onclick="forcar('keno')">Keno</button>
+    <h2 style="margin-top:20px"><span class="material-icons">emoji_events</span> Forçar Vitória (teste)</h2>
+    <div class="row">
+      <button class="ghost" onclick="forcar('kuadra')">Kuadra</button>
+      <button class="ghost" onclick="forcar('kina')">Kina</button>
+      <button class="ghost" onclick="forcar('keno')">Keno</button>
     </div>
     <div class="msg" id="rodadaMsg"></div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>Pedidos de Saque</h2>
-    <div style="overflow:auto;max-height:360px">
+  <!-- USUARIOS -->
+  <section class="card" id="tab-usuarios">
+    <h2><span class="material-icons">group</span> Jogadores</h2>
+    <div style="overflow:auto">
+      <table id="usersTable">
+        <thead><tr><th>CPF</th><th>Nome</th><th>Saldo</th><th>Depósito</th><th>Bônus</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SAQUES -->
+  <section class="card" id="tab-saques">
+    <h2><span class="material-icons">payments</span> Pedidos de Saque</h2>
+    <div style="overflow:auto">
       <table id="saquesTable">
         <thead><tr><th>ID</th><th>Jogador</th><th>Valor</th><th>Chave Pix</th><th>Status</th><th></th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
     <div class="msg" id="saqueMsg"></div>
-  </div>
+  </section>
+</main>
 
-  <div class="card">
-    <h2>Usuários</h2>
-    <div class="row" style="margin-bottom:12px">
-      <input id="fCpf" placeholder="CPF" style="max-width:160px">
-      <input id="fNome" placeholder="Novo nome">
-      <input id="fSaldo" placeholder="Saldo (ex: 50)" type="number" style="max-width:120px">
-      <button onclick="editarUser()">Salvar Alteração</button>
+<!-- Modal de ajuste de jogador -->
+<div class="overlay" id="userModal">
+  <div class="modal">
+    <h3 id="umNome">Jogador</h3>
+    <div class="linha" style="margin:6px 0 12px">
+      <select id="umSelect" style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.3);color:#fff;font-size:14px;outline:none" onchange="selJogador(this.value)"></select>
     </div>
-    <div style="overflow:auto;max-height:420px">
-      <table id="usersTable">
-        <thead><tr><th>CPF</th><th>Nome</th><th>E-mail</th><th>Saldo</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
+    <div style="font-size:12px;color:var(--muted)">CPF <b id="umCpf"></b></div>
+    <div class="seg" id="umField">
+      <button class="sel" data-v="balance" onclick="selField('balance')">Crédito (sacável)</button>
+      <button data-v="deposito" onclick="selField('deposito')">Depósito</button>
+      <button data-v="bonus" onclick="selField('bonus')">Bônus</button>
+    </div>
+    <div class="ops" id="umOp">
+      <button class="sel" data-v="add" onclick="selOp('add')">Adicionar</button>
+      <button data-v="remove" onclick="selOp('remove')">Remover</button>
+      <button data-v="set" onclick="selOp('set')">Definir</button>
+    </div>
+    <div class="linha">
+      <input id="umValor" type="number" min="0" step="0.01" placeholder="Valor (ex: 50)">
+      <button class="green" onclick="aplicarAjuste()">Aplicar</button>
+    </div>
+    <div class="msg" id="umMsg"></div>
+    <div class="linha" style="margin-top:14px;justify-content:flex-end">
+      <button class="ghost" onclick="fecharModal()">Fechar</button>
     </div>
   </div>
+</div>
 
 <script>
   const token = localStorage.getItem('bingo_session_token');
   const cpf = localStorage.getItem('bingo_meu_cpf');
   if (!token || !cpf) location.href = '/login.html';
 
+  let campoField = 'balance', campoOp = 'add', modalCpf = '';
+
   function logout(){ localStorage.clear(); location.href='/login.html'; }
+  function trocar(tab){
+    document.querySelectorAll('.nav-btn[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+  }
+  function brl(v){ return 'R$ ' + Number(v||0).toFixed(2).replace('.',','); }
 
   async function api(url, method, body){
     const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined });
@@ -97,83 +197,108 @@
     return data;
   }
 
-  function brl(v){ return 'R$ ' + Number(v).toFixed(2).replace('.',','); }
+  function selJogador(c){
+    if(!c) return;
+    const u = window.__users && window.__users.find(x=>x.cpf===c);
+    if(u) abrirModal(u.cpf, u.nome, u.balance, u.deposito, u.bonus);
+  }
 
   async function carregar(){
     try{
       const data = await api('/api/admin/users?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
+      window.__users = data.users;
       const s = data.state;
+      document.getElementById('who').textContent = 'Logado como ' + cpf;
+      // stats
+      const sacavel = data.users.reduce((a,u)=>a+(Number(u.balance)||0),0);
+      const bonus = data.users.reduce((a,u)=>a+(Number(u.bonus)||0),0);
+      document.getElementById('statsBox').innerHTML =
+        stat('Sorteio', '#'+s.sorteio, 'purple') +
+        stat('Status', s.status, 'blue') +
+        stat('Bolas', s.drawnBalls.length+'/90', '') +
+        stat('Cartelas', s.totalCards, '') +
+        stat('Créditos (sacáveis)', brl(sacavel), 'green') +
+        stat('Bônus em jogo', brl(bonus), 'red');
       document.getElementById('stateBox').innerHTML =
-        `<span>Sorteio <b>#${s.sorteio}</b></span>`+
-        `<span>Status <b>${s.status}</b></span>`+
-        `<span>Bolas <b>${s.drawnBalls.length}/90</b></span>`+
-        `<span>Cartelas <b>${s.totalCards}</b></span>`+
-        `<span>Kuadra <b>${s.winners.kuadra?'✅':'⏳'}</b></span>`+
-        `<span>Kina <b>${s.winners.kina?'✅':'⏳'}</b></span>`+
-        `<span>Keno <b>${s.winners.keno?'✅':'⏳'}</b></span>`;
+        `Sorteio <b>#${s.sorteio}</b> · Status <b>${s.status}</b> · Bolas <b>${s.drawnBalls.length}/90</b> · Cartelas <b>${s.totalCards}</b><br>`+
+        `Kuadra ${s.winners.kuadra?'✅':'⏳'} · Kina ${s.winners.kina?'✅':'⏳'} · Keno ${s.winners.keno?'✅':'⏳'} · Acumulado ${s.winners.acumulado?'✅':'⏳'}`;
+      // tabela usuarios
       const tb = document.querySelector('#usersTable tbody');
-      tb.innerHTML = '';
+      tb.innerHTML='';
+      const sel = document.getElementById('umSelect');
+      sel.innerHTML = '<option value="">Selecionar jogador...</option>' + data.users.map(u=>'<option value="'+u.cpf+'">'+u.nome+' ('+u.cpf+')</option>').join('');
       data.users.forEach(u=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${u.cpf}${u.admin?' <span class="badge">ADM</span>':''}</td><td>${u.nome}</td><td>${u.email||''}</td><td>${brl(u.balance)}</td>`+
-          `<td><button class="ghost" onclick="preencher('${u.cpf}','${u.nome.replace(/'/g,"")}',${u.balance})">Editar</button></td>`;
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${u.cpf}${u.admin?'<span class="badge">ADM</span>':''}</td><td>${u.nome}</td>`+
+          `<td class="saldo-cell"><b>${brl(u.balance)}</b></td><td class="saldo-cell"><span class="dep">${brl(u.deposito)}</span></td><td class="saldo-cell"><span class="bon">${brl(u.bonus)}</span></td>`+
+          `<td><button class="ghost" onclick="abrirModal('${u.cpf}','${(u.nome||'').replace(/'/g,"")}',${u.balance},${u.deposito},${u.bonus})">Ajustar</button></td>`;
         tb.appendChild(tr);
       });
       await carregarSaques();
     }catch(e){ alert('Acesso negado: '+e.message); location.href='/login.html'; }
   }
 
+  function stat(l,v,cls){ return `<div class="stat ${cls}"><div class="l">${l}</div><div class="v">${v}</div></div>`; }
+
   async function carregarSaques(){
     try{
       const d = await api('/api/admin/saques?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
       const tb = document.querySelector('#saquesTable tbody');
-      tb.innerHTML = '';
-      if (!d.saques.length){ tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">Nenhum pedido.</td></tr>'; return; }
+      tb.innerHTML='';
+      if(!d.saques.length){ tb.innerHTML='<tr><td colspan="6" style="color:var(--muted)">Nenhum pedido.</td></tr>'; return; }
       d.saques.forEach(s=>{
-        const tr = document.createElement('tr');
+        const tr=document.createElement('tr');
         const acoes = s.status==='pendente'
-          ? `<button class="ghost" onclick="resolverSaque('${s.id}','pago')">Pagar</button> <button class="ghost" onclick="resolverSaque('${s.id}','recusado')">Recusar</button>`
-          : `<span style="color:var(--muted)">${s.status}</span>`;
-        tr.innerHTML = `<td>${s.id}</td><td>${s.nome} <small style="color:var(--muted)">${s.cpf}</small></td><td>${brl(s.valor)}</td><td>${s.pix}</td><td>${s.status}</td><td>${acoes}</td>`;
+          ? `<button class="green" onclick="resolverSaque('${s.id}','pago')">Pagar</button> <button class="danger" onclick="resolverSaque('${s.id}','recusado')">Recusar</button>`
+          : `<span class="pill ${s.status}">${s.status}</span>`;
+        tr.innerHTML = `<td>${s.id}</td><td>${s.nome} <small style="color:var(--muted)">${s.cpf}</small></td><td>${brl(s.valor)}</td><td>${s.pix}</td><td><span class="pill ${s.status}">${s.status}</span></td><td>${acoes}</td>`;
         tb.appendChild(tr);
       });
-    }catch(e){ /* silencioso */ }
+    }catch(e){}
   }
 
-  async function resolverSaque(id, status){
-    const m = document.getElementById('saqueMsg');
-    try{ await api('/api/admin/saque','POST',{sessionToken:token,cpf,id,status}); m.className='msg ok'; m.textContent='Saque '+status+': '+id; await carregarSaques(); }
+  async function resolverSaque(id,status){
+    const m=document.getElementById('saqueMsg');
+    try{ await api('/api/admin/saque','POST',{sessionToken:token,cpf,id,status}); m.className='msg ok'; m.textContent='Saque '+status; await carregarSaques(); }
     catch(e){ m.className='msg'; m.textContent=e.message; }
   }
 
-  function preencher(c, n, b){ document.getElementById('fCpf').value=c; document.getElementById('fNome').value=n; document.getElementById('fSaldo').value=b; }
-
   async function acaoRodada(a){
-    const m = document.getElementById('rodadaMsg');
+    const m=document.getElementById('rodadaMsg');
     try{ await api('/api/admin/round','POST',{sessionToken:token,cpf,action:a}); m.className='msg ok'; m.textContent='OK: '+a; await carregar(); }
     catch(e){ m.className='msg'; m.textContent=e.message; }
   }
-
   async function forcar(p){
-    const m = document.getElementById('rodadaMsg');
+    const m=document.getElementById('rodadaMsg');
     try{ await api('/api/admin/force','POST',{sessionToken:token,cpf,phase:p}); m.className='msg ok'; m.textContent='Vitória forçada: '+p; await carregar(); }
     catch(e){ m.className='msg'; m.textContent=e.message; }
   }
 
-  async function editarUser(){
-    const m = document.getElementById('rodadaMsg');
-    const c = document.getElementById('fCpf').value.replace(/\D/g,'');
-    const nome = document.getElementById('fNome').value.trim();
-    const saldo = parseFloat(document.getElementById('fSaldo').value);
-    if(!c){ m.className='msg'; m.textContent='Informe o CPF.'; return; }
+  // Modal
+  function abrirModal(c,n,b,d,bon){
+    modalCpf=c; campoField='balance'; campoOp='add';
+    document.getElementById('umNome').textContent=n;
+    document.getElementById('umCpf').textContent=c;
+    document.getElementById('umMsg').textContent='';
+    document.getElementById('umValor').value='';
+    selField('balance'); selOp('add');
+    document.getElementById('userModal').classList.add('show');
+  }
+  function fecharModal(){ document.getElementById('userModal').classList.remove('show'); }
+  function selField(v){ campoField=v; document.querySelectorAll('#umField button').forEach(b=>b.classList.toggle('sel',b.dataset.v===v)); }
+  function selOp(v){ campoOp=v; document.querySelectorAll('#umOp button').forEach(b=>b.classList.toggle('sel',b.dataset.v===v)); }
+  async function aplicarAjuste(){
+    const m=document.getElementById('umMsg');
+    const val=parseFloat(document.getElementById('umValor').value);
+    if(isNaN(val)||val<0){ m.className='msg'; m.textContent='Informe um valor válido.'; return; }
     try{
-      await api('/api/admin/user','POST',{sessionToken:token,cpf,cpfAlvo:c,nome: nome||undefined, balance: isNaN(saldo)?undefined:saldo});
-      m.className='msg ok'; m.textContent='Usuário atualizado.'; await carregar();
+      await api('/api/admin/user','POST',{sessionToken:token,cpf,cpfAlvo:modalCpf,field:campoField,op:campoOp,amount:val});
+      m.className='msg ok'; m.textContent='Aplicado!'; await carregar(); setTimeout(fecharModal,900);
     }catch(e){ m.className='msg'; m.textContent=e.message; }
   }
 
   carregar();
-  setInterval(carregar, 5000);
+  setInterval(()=>{ if(document.getElementById('tab-visao').classList.contains('active')||document.getElementById('tab-usuarios').classList.contains('active')) carregar(); }, 6000);
 </script>
 </body>
 </html>

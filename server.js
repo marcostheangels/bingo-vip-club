@@ -105,7 +105,7 @@ app.get('/api/admin/users', (req, res) => {
   }
   const list = Array.from(db.users.values())
     .filter((x) => !/^(\d)\1{10}$/.test(x.cpf))
-    .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, admin: !!x.admin }));
+    .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, bonus: Number(x.bonus) || 0, admin: !!x.admin }));
   res.json({ users: list, state: round.publicState() });
 });
 
@@ -139,16 +139,36 @@ app.post('/api/admin/round', requireAdmin, (req, res) => {
   res.status(400).json({ error: 'ação inválida' });
 });
 
+// Ajusta saldo/bonus de um usuario (admin).
+// body: { cpfAlvo, field: 'balance'|'bonus', op: 'add'|'remove'|'set', amount }
 app.post('/api/admin/user', requireAdmin, (req, res) => {
   const cpfAlvo = req.body.cpfAlvo || req.body.cpf;
-  const { balance, nome } = req.body || {};
+  const { field, op, amount, nome } = req.body || {};
   const cpfLimpo = String(cpfAlvo || '').replace(/\D/g, '');
   const u = db.users.get(cpfLimpo);
   if (!u) return res.status(404).json({ error: 'usuário não encontrado' });
-  if (typeof balance === 'number') { u.balance = +(balance).toFixed(2); db.markDirty(cpfLimpo); }
   if (nome) { u.nome = nome.trim(); db.markDirty(cpfLimpo); }
+  if (field === 'balance' || field === 'bonus') {
+    const v = parseFloat(String(amount).replace(',', '.'));
+    if (isNaN(v) || v < 0) return res.status(400).json({ error: 'valor inválido' });
+    const atual = Number(u[field]) || 0;
+    let novo;
+    if (op === 'add') novo = atual + v;
+    else if (op === 'remove') novo = Math.max(0, atual - v);
+    else if (op === 'set') novo = v;
+    else return res.status(400).json({ error: 'op inválida' });
+    u[field] = +novo.toFixed(2);
+    db.markDirty(cpfLimpo);
+  }
   db.saveUsers();
-  res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance } });
+  if (u.sessionToken) {
+    // notifica o jogador logado sobre o novo saldo/bonus
+    try {
+      const io = require('./src/socket')._io;
+      if (io) io.of('/').sockets.forEach((s) => { if (s.data.cpf === cpfLimpo) { s.emit('saldo', { balance: u.balance, bonus: u.bonus }); } });
+    } catch (e) {}
+  }
+  res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance, bonus: u.bonus } });
 });
 
 // Lista pedidos de saque (admin)

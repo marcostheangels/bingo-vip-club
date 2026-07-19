@@ -37,6 +37,8 @@ async function initDB() {
       `);
       // Garante a coluna em tabelas antigas.
       await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT FALSE`).catch(() => {});
+      await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus NUMERIC DEFAULT 0`).catch(() => {});
+      await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS deposito NUMERIC DEFAULT 0`).catch(() => {});
       // Tabela de estado da rodada em andamento (snapshot para retomar após queda).
       await pgClient.query(`
         CREATE TABLE IF NOT EXISTS round_state (
@@ -61,7 +63,7 @@ async function initDB() {
         );
       `);
       // Carrega todos para o cache em memória.
-      const res = await pgClient.query('SELECT cpf, nome, email, chave_pix AS "chavePix", password, balance, session_token AS "sessionToken", COALESCE(admin, FALSE) AS "admin" FROM users');
+      const res = await pgClient.query('SELECT cpf, nome, email, chave_pix AS "chavePix", password, balance, session_token AS "sessionToken", COALESCE(admin, FALSE) AS "admin", COALESCE(bonus, 0) AS "bonus", COALESCE(deposito, 0) AS "deposito" FROM users');
       for (const row of res.rows) {
         users.set(row.cpf, {
           cpf: row.cpf,
@@ -70,6 +72,8 @@ async function initDB() {
           chavePix: row.chavePix,
           password: row.password,
           balance: Number(row.balance),
+          deposito: Number(row.deposito) || 0,
+          bonus: Number(row.bonus) || 0,
           sessionToken: row.sessionToken || null,
           admin: !!row.admin || config.ADMIN_CPF.includes(row.cpf),
         });
@@ -91,6 +95,8 @@ function loadUsersFile() {
     const arr = JSON.parse(raw);
     for (const u of arr) {
       u.admin = !!u.admin || config.ADMIN_CPF.includes(u.cpf);
+      u.bonus = Number(u.bonus) || 0;
+      u.deposito = Number(u.deposito) || 0;
       users.set(u.cpf, u);
     }
     console.log('[users] carregados', users.size, 'do users.json');
@@ -102,12 +108,13 @@ async function persistUser(u) {
   if (pgClient) {
     try {
       await pgClient.query(
-        `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin, bonus, deposito)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
          ON CONFLICT (cpf) DO UPDATE SET
           nome=EXCLUDED.nome, email=EXCLUDED.email, chave_pix=EXCLUDED.chave_pix,
-          password=EXCLUDED.password, balance=EXCLUDED.balance, session_token=EXCLUDED.session_token, admin=EXCLUDED.admin`,
-        [u.cpf, u.nome, u.email, u.chavePix, u.password, u.balance, u.sessionToken || null, !!u.admin]
+          password=EXCLUDED.password, balance=EXCLUDED.balance, session_token=EXCLUDED.session_token,
+          admin=EXCLUDED.admin, bonus=EXCLUDED.bonus, deposito=EXCLUDED.deposito`,
+        [u.cpf, u.nome, u.email, u.chavePix, u.password, u.balance, u.sessionToken || null, !!u.admin, Number(u.bonus) || 0, Number(u.deposito) || 0]
       );
       return;
     } catch (e) {
@@ -247,10 +254,10 @@ function validarCPF(cpf) {
 function ensureUser(cpf, dados) {
   const key = cpf.replace(/\D/g, '');
   if (!users.has(key)) {
-    const u = Object.assign(
-      { cpf: key, password: hash(dados.senha || ''), balance: 10.0, sessionToken: null, admin: false },
-      dados
-    );
+  const u = Object.assign(
+    { cpf: key, password: hash(dados.senha || ''), balance: 0, deposito: 0, bonus: 10.0, sessionToken: null, admin: false },
+    dados
+  );
     u.password = hash(dados.senha || '');
     u.admin = !!u.admin || config.ADMIN_CPF.includes(key);
     users.set(key, u);
@@ -258,6 +265,33 @@ function ensureUser(cpf, dados) {
   }
   return users.get(key);
 }
+
+
+// Tenta debitar 'valor' para jogar, na ordem: balance (sacavel) -> deposito -> bonus.
+// Retorna true se debitou (e ajusta os campos), false se insuficiente.
+function debitarParaJogar(cpf, valor) {
+  const u = users.get(cpf);
+  if (!u) return false;
+  let restante = +(valor).toFixed(2);
+  const pegar = (campo) => {
+    const disp = Number(u[campo]) || 0;
+    const usa = Math.min(disp, restante);
+    if (usa > 0) { u[campo] = +(disp - usa).toFixed(2); restante = +(restante - usa).toFixed(2); }
+  };
+  pegar('balance');
+  pegar('deposito');
+  pegar('bonus');
+  if (restante <= 0.001) { markDirty(cpf); return true; }
+  // reverte (não deveria acontecer pois checamos antes, mas segurança)
+  return false;
+}
+
+function saldoJogavel(cpf) {
+  const u = users.get(cpf);
+  if (!u) return 0;
+  return +(Number(u.balance) + Number(u.deposito) + Number(u.bonus)).toFixed(2);
+}
+
 
 module.exports = {
   users,
@@ -269,6 +303,8 @@ module.exports = {
   newToken,
   validarCPF,
   ensureUser,
+  debitarParaJogar,
+  saldoJogavel,
   markDirty,
   saveUsersFile,
   addSaque,

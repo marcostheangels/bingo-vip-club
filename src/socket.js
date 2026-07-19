@@ -52,9 +52,8 @@ function init(server) {
       if (core.state.status === 'running') {
         return cb && cb({ error: 'Aguarde o intervalo para comprar cartelas.' });
       }
-      if (u.balance < custo) return cb && cb({ error: 'Saldo insuficiente.' });
-      u.balance = +(u.balance - custo).toFixed(2);
-      db.markDirty(owner);
+      if (db.saldoJogavel(owner) < custo) return cb && cb({ error: 'Saldo insuficiente.' });
+      db.debitarParaJogar(owner, custo);
       db.saveUsers();
       for (let i = 0; i < qtd; i++) {
         const id = ++core.cardSeq;
@@ -70,4 +69,4 @@ function init(server) {
   return io;
 }
 
-module.exports = { init, emitSaldoParaUser, emitMyCardsParaTodos };
+module.exports = { init, emitSaldoParaUser, emitMyCardsParaTodos, _io: () => io };
