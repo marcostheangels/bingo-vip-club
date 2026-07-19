@@ -1,5 +1,6 @@
 // ===== Socket.IO client + montagem do grid 90 bolas =====
-const gridElement = document.getElementById('board-grid');
+window.gridElement = document.getElementById('board-grid');
+const gridElement = window.gridElement;
 for (let i = 1; i <= 90; i++) {
   const cell = document.createElement('div');
   cell.classList.add('grid-cell');

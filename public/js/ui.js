@@ -57,7 +57,8 @@ function renderPhasePanel(s) {
 function renderState(s) {
   window.setGameState(s);
   document.getElementById('sorteioId').textContent = '#' + s.sorteio;
-  document.getElementById('doacaoVal').textContent = brl(s.cardCost);
+  const doacaoEl = document.getElementById('doacaoVal');
+  if (doacaoEl) doacaoEl.textContent = brl(s.cardCost);
   document.getElementById('drawnCount').textContent = s.drawnBalls.length;
   document.getElementById('cartCount').textContent = window.getMyCards().length;
 
