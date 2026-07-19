@@ -47,6 +47,8 @@ function sortearBola() {
 
 function finalizarRodada() {
   state.status = 'finished';
+  state.pausado = false;
+  state.fasePausada = null;
 }
 
 module.exports = {

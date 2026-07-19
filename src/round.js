@@ -78,22 +78,6 @@ function checarVencedores() {
       }
     }, 4500);
   }
-
-  // Acumulado: Keno fechado até a bola ACUMULADO_BALLS => prêmio extra para os vencedores do Keno.
-  if (core.state.winners.keno && !core.state.winners.acumulado && core.state.drawnBalls.length <= config.ACUMULADO_BALLS) {
-    const porJogador = new Map();
-    for (const v of core.state.winners.keno.vencedores) {
-      const owner = v.owner || v.name;
-      if (!porJogador.has(owner)) porJogador.set(owner, { name: v.name, owner, cardIds: [], prize: 0 });
-      const info = porJogador.get(owner);
-      info.cardIds.push(...v.cardIds);
-      info.prize += config.PRIZES.acumulado;
-      pagar(owner, config.PRIZES.acumulado);
-    }
-    const vencedores = [...porJogador.values()];
-    core.state.winners.acumulado = { vencedores, name: vencedores.map((v) => v.name).join(', '), prize: config.PRIZES.acumulado };
-    io.emit('jackpot', { prize: config.PRIZES.acumulado, vencedores, balls: core.state.drawnBalls.length });
-  }
 }
 
 function sortearBolaLoop() {
@@ -123,6 +107,11 @@ async function restaurarRodada() {
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.state.status === 'running') {
+    if (core.state.pausado) {
+      // Estava congelado no overlay de uma fase (ex.: Keno). Desbloqueia para evitar timer orfao.
+      core.state.pausado = false;
+      core.state.fasePausada = null;
+    }
     core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
     console.log('[round] rodada retomada (running) bolas:', core.state.drawnBalls.length);
   } else if (core.state.status === 'intermission') {
@@ -150,6 +139,22 @@ function finalizarRodada() {
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.finalizarRodada();
+  // Acumulado: Keno fechado até a bola ACUMULADO_BALLS => prêmio extra para os vencedores do Keno.
+  // Processado aqui (uma unica vez) para nao depender do caminho de checarVencedores.
+  if (core.state.winners.keno && !core.state.winners.acumulado && core.state.drawnBalls.length <= config.ACUMULADO_BALLS) {
+    const porJogador = new Map();
+    for (const v of core.state.winners.keno.vencedores) {
+      const owner = v.owner || v.name;
+      if (!porJogador.has(owner)) porJogador.set(owner, { name: v.name, owner, cardIds: [], prize: 0 });
+      const info = porJogador.get(owner);
+      info.cardIds.push(...v.cardIds);
+      info.prize += config.PRIZES.acumulado;
+      pagar(owner, config.PRIZES.acumulado);
+    }
+    const vencedores = [...porJogador.values()];
+    core.state.winners.acumulado = { vencedores, name: vencedores.map((v) => v.name).join(', '), prize: config.PRIZES.acumulado };
+    io.emit('jackpot', { prize: config.PRIZES.acumulado, vencedores, balls: core.state.drawnBalls.length });
+  }
   broadcastState();
   db.clearRound();
   setTimeout(comecarRodada, 6000);
