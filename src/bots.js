@@ -28,10 +28,9 @@ const FIRST_NAMES = [
 
 // Gera 210 bots com CPFs variados e nomes aleatorios que mudam a cada rodada.
 // Usa CPFs fixos para manter o saldo entre rodadas, mas nomes randomicos.
- const BOT_CPFS = [];
+const BOT_CPFS = [];
 for (let i = 0; i < 210; i++) {
-  const digits = String(i + 1).padStart(3, '0');
-  BOT_CPFS.push(digits.repeat(3).slice(0, 11));
+  BOT_CPFS.push(String(10000000000 + i));
 }
 
 function nomeAleatorio(exclude, usado) {
