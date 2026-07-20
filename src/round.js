@@ -218,7 +218,6 @@ function publicState() {
     const ganhou = [];
     for (const c of validCards) {
       for (const ph of game.PHASE_SEQUENCE) {
-        if (ph === 'keno') continue; // keno tem tratamento proprio
         if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
       }
     }
