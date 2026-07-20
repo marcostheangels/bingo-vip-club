@@ -25,11 +25,14 @@ socket.on('connect_error', (err) => {
 });
 
 // ===== Saldo =====
-socket.on('saldo', ({ balance, saldoJogavel }) => {
+socket.on('saldo', ({ balance, bonus, deposito, saldoJogavel }) => {
   const el = document.getElementById('balanceVal');
   if (el) el.textContent = brl(typeof saldoJogavel === 'number' ? saldoJogavel : balance);
   if (typeof saldoJogavel === 'number') window.__saldoJogavel = saldoJogavel;
   else window.__saldoJogavel = balance;
+  window.__bonus = typeof bonus === 'number' ? bonus : 0;
+  window.__deposito = typeof deposito === 'number' ? deposito : 0;
+  window.__balance = typeof balance === 'number' ? balance : 0;
 });
 
 // ===== Minhas cartelas =====

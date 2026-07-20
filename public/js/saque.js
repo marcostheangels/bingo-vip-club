@@ -2,8 +2,14 @@
 (function () {
   function abrirSaque() {
     const modal = document.getElementById('saqueModal');
-    const saldoEl = document.getElementById('saqueSaldo');
-    saldoEl.textContent = document.getElementById('balanceVal').textContent;
+    const total = typeof window.__saldoJogavel === 'number' ? window.__saldoJogavel : 0;
+    const bonus = typeof window.__bonus === 'number' ? window.__bonus : 0;
+    const deposito = typeof window.__deposito === 'number' ? window.__deposito : 0;
+    const balance = typeof window.__balance === 'number' ? window.__balance : 0;
+    // Crédito sacável = total - bonus - deposito (nunca negativo)
+    const credito = Math.max(0, +(balance - bonus - deposito).toFixed(2));
+    document.getElementById('saqueCredito').textContent = window.brl ? window.brl(credito) : 'R$ ' + credito.toFixed(2);
+    document.getElementById('saqueBonus').textContent = window.brl ? window.brl(bonus) : 'R$ ' + bonus.toFixed(2);
     const v = document.getElementById('saqueValor');
     const p = document.getElementById('saquePix');
     v.value = ''; p.value = '';
