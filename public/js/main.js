@@ -162,4 +162,19 @@
       if (rightPanel) rightPanel.style.height = rightPanel.style.height ? '' : '500px';
     }
   });
+
+  // ===== Wake Lock: mantém tela ligada enquanto o jogo estiver aberto =====
+  let wakeSentinel = null;
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeSentinel = await navigator.wakeLock.request('screen');
+        wakeSentinel.addEventListener('release', () => { wakeSentinel = null; });
+      }
+    } catch {}
+  }
+  requestWakeLock();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !wakeSentinel) requestWakeLock();
+  });
 })();

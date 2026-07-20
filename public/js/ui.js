@@ -464,7 +464,7 @@ function toggleCards() {
 document.addEventListener('click', (e) => {
   const el = document.getElementById('myCards');
   if (!el || !el.classList.contains('mobile-show')) return;
-  if (!el.contains(e.target) || e.target.closest('.btn-mobile-toggle')) {
+  if (!el.contains(e.target)) {
     el.classList.remove('mobile-show');
   }
 });
