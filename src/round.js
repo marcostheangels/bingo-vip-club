@@ -36,7 +36,7 @@ function checarVencedores() {
     }
     if (cartelasVencedoras.length === 0) continue;
 
-    // Cada vencedor recebe o prêmio da fase. Agrupa por jogador (pode ter várias cartelas).
+    // Agrupa cartelas vencedoras por jogador.
     const porJogador = new Map();
     for (const c of cartelasVencedoras) {
       const u = db.users.get(c.owner);
@@ -44,19 +44,24 @@ function checarVencedores() {
       if (!porJogador.has(c.owner)) {
         porJogador.set(c.owner, { name: nome, owner: c.owner, cardIds: [], prize: 0 });
       }
-      const info = porJogador.get(c.owner);
-      info.cardIds.push(c.id);
-      info.prize += config.PRIZES[phase];
-      pagar(c.owner, config.PRIZES[phase]);
+      porJogador.get(c.owner).cardIds.push(c.id);
     }
 
+    // Divide o prêmio IGUALMENTE entre os vencedores (cada jogador, não por cartela).
     const vencedores = [...porJogador.values()];
+    const numVencedores = vencedores.length;
+    const prizePorJogador = +(config.PRIZES[phase] / numVencedores).toFixed(2);
+    for (const v of vencedores) {
+      v.prize = prizePorJogador;
+      pagar(v.owner, prizePorJogador);
+    }
+
     core.state.winners[phase] = {
       vencedores,
       name: vencedores.map((v) => v.name).join(', '),
-      prize: config.PRIZES[phase],
+      prize: prizePorJogador,
     };
-    io.emit('winner', { phase, prize: config.PRIZES[phase], vencedores });
+    io.emit('winner', { phase, prize: prizePorJogador, vencedores });
 
     // Registra no histórico de rodadas para conferência no painel admin.
     db.addHistorico({
@@ -157,14 +162,17 @@ function finalizarRodada() {
     for (const v of core.state.winners.keno.vencedores) {
       const owner = v.owner || v.name;
       if (!porJogador.has(owner)) porJogador.set(owner, { name: v.name, owner, cardIds: [], prize: 0 });
-      const info = porJogador.get(owner);
-      info.cardIds.push(...v.cardIds);
-      info.prize += config.PRIZES.acumulado;
-      pagar(owner, config.PRIZES.acumulado);
+      porJogador.get(owner).cardIds.push(...v.cardIds);
     }
     const vencedores = [...porJogador.values()];
-    core.state.winners.acumulado = { vencedores, name: vencedores.map((v) => v.name).join(', '), prize: config.PRIZES.acumulado };
-    io.emit('jackpot', { prize: config.PRIZES.acumulado, vencedores, balls: core.state.drawnBalls.length });
+    const numVencedores = vencedores.length;
+    const prizePorJogador = +(config.PRIZES.acumulado / numVencedores).toFixed(2);
+    for (const v of vencedores) {
+      v.prize = prizePorJogador;
+      pagar(v.owner, prizePorJogador);
+    }
+    core.state.winners.acumulado = { vencedores, name: vencedores.map((v) => v.name).join(', '), prize: prizePorJogador };
+    io.emit('jackpot', { prize: prizePorJogador, vencedores, balls: core.state.drawnBalls.length });
   }
   broadcastState();
   db.clearRound();
