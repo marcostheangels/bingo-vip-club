@@ -718,29 +718,29 @@ body.editor-active [contenteditable="true"]:hover {
         --game-display-gap: 4px;
     }
     body { overflow: hidden; height: 100vh; height: 100dvh; }
-    header { height: 44px; padding: 0 8px; }
-    .logo-text { font-size: 13px; }
-    .logo-img { height: 24px; }
-    .nav-actions { gap: 4px; }
-    .btn-action { padding: 3px 6px; min-width: 36px; font-size: 8px; }
-    .btn-action .material-icons { font-size: 15px; }
-    .btn-action span:not(.material-icons) { font-size: 7px; }
-    .user-info { font-size: 11px; gap: 4px; }
+    header { height: 48px; padding: 0 10px; }
+    .logo-text { font-size: 15px; }
+    .logo-img { height: 28px; }
+    .nav-actions { gap: 6px; }
+    .btn-action { padding: 4px 8px; min-width: 42px; font-size: 10px; }
+    .btn-action .material-icons { font-size: 17px; }
+    .btn-action span:not(.material-icons) { font-size: 8px; }
+    .user-info { font-size: 12px; gap: 6px; }
     .user-info span:first-child { display: none; }
-    .balance-val { font-size: 12px; }
-    .balance-box { padding-left: 6px; }
+    .balance-val { font-size: 14px; }
+    .balance-box { padding-left: 8px; }
     .info-column { display: none; }
 
     .main-container { flex-direction: column; overflow: hidden; }
     .center-content { flex: 0 0 auto; overflow: hidden; gap: 4px; }
 
     /* — PRÊMIOS — todos cabem em uma linha, sem overflow-x */
-    .prizes-row { gap: 3px; overflow: hidden; flex-wrap: nowrap; }
-    .prize-card { flex: 1 1 0; min-width: 0; padding: 5px 3px; }
-    .prize-card span { font-size: 8px; margin-bottom: 2px; }
-    .prize-card strong { font-size: 10px; }
-    .badge-acumulado { width: 18px; height: 18px; font-size: 7px; top: -6px; right: -4px; }
-    .ac-status { font-size: 8px; }
+    .prizes-row { gap: 4px; overflow: hidden; flex-wrap: nowrap; }
+    .prize-card { flex: 1 1 0; min-width: 0; padding: 6px 4px; }
+    .prize-card span { font-size: 10px; margin-bottom: 2px; }
+    .prize-card strong { font-size: 12px; }
+    .badge-acumulado { width: 22px; height: 22px; font-size: 9px; top: -7px; right: -5px; }
+    .ac-status { font-size: 9px; }
 
     /* — DISPLAY DO JOGO — bola + bolas sorteadas lado a lado */
     .game-display { gap: 4px; padding: 4px; flex-direction: row; align-items: center; overflow: hidden; }
@@ -754,13 +754,13 @@ body.editor-active [contenteditable="true"]:hover {
     .phase-stats,
     .phase-progress { display: none; }
     .phase-name { font-size: var(--phase-name-font); margin: 0; }
-    .phase-prize { font-size: .8em; padding: 2px 10px; }
+    .phase-prize { font-size: .85em; padding: 3px 10px; }
 
     /* — BOLAS SORTEADAS — ocupa o resto, sem esticar */
     .balls-board { flex: 1; min-height: 0; padding: 6px; max-height: 150px; }
-    .balls-board-title { font-size: 8px; }
+    .balls-board-title { font-size: 10px; }
     .balls-grid { gap: 1px; }
-    .grid-cell { font-size: 8px; border-radius: 4px; min-width: 0; min-height: 0; }
+    .grid-cell { font-size: 9px; border-radius: 4px; min-width: 0; min-height: 0; }
 
     /* — MINHAS CARTELAS — lado esquerdo do split */
     .my-cards { display: flex; flex-direction: column; flex: 1; border: none; border-radius: 0; padding: 6px; background: transparent; min-width: 0; max-width: none; max-height: none; overflow: hidden; }
@@ -774,33 +774,33 @@ body.editor-active [contenteditable="true"]:hover {
     /* — SPLIT: cartelas à esquerda, jogadores + comprar à direita — */
     .mobile-split { display: flex; flex-direction: row; flex: 1 1 auto; min-height: 0; overflow: hidden; gap: 4px; }
     .mobile-cards-panel { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
-    .mobile-cards-panel .my-cards-title { font-size: 10px; }
+    .mobile-cards-panel .my-cards-title { font-size: 11px; }
 
     /* — PAINEL DIREITO — lado direito do split */
-    .right-panel { width: auto; flex: 1 1 50%; gap: 4px; overflow: hidden; }
-    .panel-title-right { font-size: 10px; }
-    .players-container { padding: 6px; flex: 1 1 auto; overflow-y: auto; }
-    .player-row { padding: 4px 6px; font-size: 10px; margin-bottom: 3px; gap: 4px; }
-    .prank { font-size: 9px; min-width: 10px; }
-    .pcode { font-size: 9px; min-width: 24px; }
-    .player-name { font-size: 9px; min-width: 30px; max-width: 44px; }
-    .pballmini { width: 14px; height: 14px; font-size: 8px; }
-    .fase-badge-won { font-size: 8px; padding: 2px 5px; }
-    .fase-badge-won.sm { font-size: 7px; padding: 1px 4px; }
+    .right-panel { width: auto; flex: 1 1 50%; gap: 6px; overflow-y: auto; }
+    .panel-title-right { font-size: 12px; }
+    .players-container { padding: 6px; flex: 0 0 auto; overflow: hidden; max-height: 30vh; overflow-y: auto; }
+    .player-row { padding: 5px 6px; font-size: 12px; margin-bottom: 4px; gap: 5px; }
+    .prank { font-size: 11px; min-width: 12px; }
+    .pcode { font-size: 11px; min-width: 28px; }
+    .player-name { font-size: 11px; min-width: 34px; max-width: 50px; }
+    .pballmini { width: 17px; height: 17px; font-size: 10px; }
+    .fase-badge-won { font-size: 10px; padding: 3px 6px; }
+    .fase-badge-won.sm { font-size: 9px; padding: 2px 5px; }
 
     /* — COMPRAR CARTELAS — preso ao fim do right-panel */
     .buy-panel { flex-shrink: 0; padding: 8px; }
-    .buy-title { font-size: 11px; margin-bottom: 6px; }
-    .buy-cart-count { font-size: 9px; min-width: 17px; height: 15px; }
-    .buy-badge { font-size: 8px; padding: 1px 6px; }
-    .qty-row { gap: 3px; margin-bottom: 6px; }
-    .qbtn { padding: 4px 6px; font-size: 9px; min-width: 24px; }
-    .buy-controls { gap: 5px; }
-    .stepper-btn { width: 22px; height: 22px; font-size: 12px; }
-    .stepper-qty { width: 22px; font-size: 10px; }
-    .buy-total { padding: 3px 7px; }
-    .buy-total .bt-val { font-size: 10px; }
-    .btn-comprar { padding: 5px 9px; font-size: 10px; }
+    .buy-title { font-size: 13px; margin-bottom: 6px; }
+    .buy-cart-count { font-size: 11px; min-width: 19px; height: 17px; }
+    .buy-badge { font-size: 10px; padding: 2px 7px; }
+    .qty-row { gap: 4px; margin-bottom: 6px; }
+    .qbtn { padding: 5px 7px; font-size: 11px; min-width: 28px; }
+    .buy-controls { gap: 6px; }
+    .stepper-btn { width: 26px; height: 26px; font-size: 14px; }
+    .stepper-qty { width: 26px; font-size: 12px; }
+    .buy-total { padding: 4px 8px; }
+    .buy-total .bt-val { font-size: 12px; }
+    .btn-comprar { padding: 6px 11px; font-size: 12px; }
 
     .cards-bar { padding: 4px 6px; }
     .cards-bar strong { font-size: 10px; }
@@ -814,21 +814,22 @@ body.editor-active [contenteditable="true"]:hover {
 
 @media (max-width: 480px) {
     :root {
-        --ball-size: 42px;
-        --ball-font: 18px;
-        --phase-name-font: .85em;
+        --ball-size: 48px;
+        --ball-font: 20px;
+        --phase-name-font: .9em;
     }
-    .btn-action { min-width: 30px; padding: 2px 4px; }
-    .prize-card { padding: 4px 2px; }
-    .prize-card strong { font-size: 9px; }
-    .game-display { padding: 2px; }
-    .player-name { max-width: 30px; min-width: 22px; }
-    .buy-title { font-size: 10px; }
-    .qbtn { font-size: 8px; min-width: 20px; padding: 3px 4px; }
-    .stepper-btn { width: 19px; height: 19px; font-size: 11px; }
-    .stepper-qty { width: 19px; font-size: 9px; }
-    .btn-comprar { padding: 4px 7px; font-size: 9px; }
-    .my-cards.mobile-show .my-cards-grid { grid-template-columns: 1fr; }
+    .btn-action { padding: 3px 6px; min-width: 34px; }
+    .prize-card { padding: 4px 3px; }
+    .prize-card strong { font-size: 10px; }
+    .prize-card span { font-size: 9px; }
+    .game-display { padding: 3px; }
+    .player-name { max-width: 36px; min-width: 26px; font-size: 10px; }
+    .player-row { font-size: 11px; }
+    .buy-title { font-size: 12px; }
+    .qbtn { font-size: 10px; min-width: 24px; padding: 4px 5px; }
+    .stepper-btn { width: 22px; height: 22px; font-size: 13px; }
+    .stepper-qty { width: 22px; font-size: 11px; }
+    .btn-comprar { padding: 5px 9px; font-size: 11px; }
 }
 
 /* ===== Botão Depósito ===== */
