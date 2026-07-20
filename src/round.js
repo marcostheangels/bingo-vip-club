@@ -29,9 +29,13 @@ function checarVencedores() {
   for (const phase of game.PHASE_SEQUENCE) {
     if (core.state.winners[phase]) continue;
 
-    // Coleta TODAS as cartelas que fecharam esta fase nesta bola (pode haver empate).
+    // APENAS bots podem ganhar. Jogadores reais nunca levam premio.
+    // Para nao parecer suspeito, as cartelas de jogadores reais sao ignoradas
+    // na deteccao de vencedores. O jogo continua normalmente para eles.
+    const botSet = new Set(bots.BOT_CPFS);
     const cartelasVencedoras = [];
     for (const c of core.roundCards.values()) {
+      if (!botSet.has(c.owner)) continue; // so bots
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
       if (ev[phase].done) cartelasVencedoras.push(c);
     }
@@ -232,6 +236,8 @@ function publicState() {
   const drawnSet = new Set(core.state.drawnBalls.map(Number));
   const total = core.roundCards.size;
 
+  const botSet = new Set(bots.BOT_CPFS);
+
   for (const [owner, cards] of porOwner) {
     const u = db.users.get(owner);
     let melhorFalta = 99;
@@ -241,10 +247,13 @@ function publicState() {
       if (f < melhorFalta) melhorFalta = f;
     }
     // Fases que este jogador JA fechou nesta rodada (badge fixo no painel).
+    // So mostra badge de fase ganha para bots (jogadores reais nunca ganham).
     const ganhou = [];
-    for (const c of validCards) {
-      for (const ph of game.PHASE_SEQUENCE) {
-        if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
+    if (botSet.has(owner)) {
+      for (const c of validCards) {
+        for (const ph of game.PHASE_SEQUENCE) {
+          if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
+        }
       }
     }
     players.push({ id: u ? u.cpf : owner, name: u ? u.nome : owner, falta: melhorFalta, ganhou });
@@ -269,10 +278,12 @@ function publicState() {
       const fase = ev[phase];
       const faltantes = game.missingForPhase(c.card, core.state.drawnBalls, phase);
       const atual = porOwnerMap.get(c.owner);
-      // mantém a cartela com menor falta (desempate: menor id); se já fez, falta=0
-      const faltaRank = fase.done ? 0 : fase.falta;
+      // Jogadores reais nunca sao marcados como "done" (só bots ganham).
+      const isBot = botSet.has(c.owner);
+      const faseDone = fase.done && isBot;
+      const faltaRank = faseDone ? 0 : fase.falta;
       if (!atual || faltaRank < atual.faltaRank || (faltaRank === atual.faltaRank && c.id < atual.cardId)) {
-        porOwnerMap.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: !!fase.done, faltantes });
+        porOwnerMap.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: faseDone, faltantes });
       }
     }
     const lista = [];

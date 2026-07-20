@@ -9,24 +9,20 @@ function calcularCardCost() {
   return +(CARD_COST_BASE * variacao).toFixed(2);
 }
 
-// Calcula premios DINAMICOS baseados no numero estimado de cartelas vendidas.
-// Casa SEMPRE ganha: apenas 70% da receita estimada vai para premios.
-// Os valores mudam a cada rodada (variacao aleatoria nas porcentagens).
+// Calcula premios que VARIAM a cada rodada.
+// Keno sempre > Kina > Kuadra. Casa sempre ganha (bots pagam os premios).
 function calcularPremios(totalCardsEstimado, cardCost) {
-  const receita = totalCardsEstimado * cardCost;
-  const pool = receita * 0.70; // casa fica com 30%
   const sorteio = Math.floor(Math.random() * 100);
-  // Distribuicao variavel a cada rodada para nao ficar sempre igual
-  const pKua = 0.12 + (sorteio % 11) / 100;         // 12% ~ 22%
-  const pKin = 0.18 + ((sorteio + 5) % 13) / 100;    // 18% ~ 30%
-  const pKen = 0.40 + ((sorteio + 11) % 21) / 100;   // 40% ~ 60%
-  const pAcu = 0.10 + ((sorteio + 7) % 9) / 100;     // 10% ~ 18%
-  const totalPct = pKua + pKin + pKen + pAcu;
-  const minPrizes = { kuadra: 1, kina: 1, keno: 2, acumulado: 2 };
+  let kuadra = 15 + (sorteio % 21);          // 15~35
+  let kina = 30 + ((sorteio + 5) % 26);       // 30~55
+  let keno = 100 + ((sorteio + 11) % 101);    // 100~200
+  // Garante hierarquia estrita: Kuadra < Kina < Keno
+  if (kuadra >= kina) kuadra = kina - 5;
+  if (kina >= keno) kina = keno - 10;
   return {
-    kuadra: Math.max(minPrizes.kuadra, +(pool * (pKua / totalPct)).toFixed(2)),
-    kina: Math.max(minPrizes.kina, +(pool * (pKin / totalPct)).toFixed(2)),
-    keno: Math.max(minPrizes.keno, +(pool * (pKen / totalPct)).toFixed(2)),
+    kuadra: Math.max(5, kuadra),
+    kina: Math.max(10, kina),
+    keno: Math.max(50, keno),
     acumulado: 1000,
   };
 }

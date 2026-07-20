@@ -50,15 +50,47 @@ function garantirBots(users) {
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
+// Gera cartela para bot com numeros concentrados nas colunas 0-4 (1-49).
+// Bots ganham mais rapido porque as bolas baixas sao sorteadas primeiro.
+function gerarCartelaBot() {
+  const card = Array.from({ length: 3 }, () => Array(9).fill(''));
+  // Cada coluna recebe 3 numeros. Colunas 0-4 recebem primeiro (prioridade).
+  const cols = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  // Embaralha dando peso maior para colunas baixas (mais chances de ficarem com 3 numeros).
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 9; col++) {
+      const start = col === 0 ? 1 : col * 10;
+      const end = col === 8 ? 90 : col * 10 + 9;
+      const pool = [];
+      // Bots pegam numeros mais baixos de cada faixa
+      const limit = col <= 4 ? end - 3 : end;
+      for (let n = start; n <= limit; n++) pool.push(n);
+      const idx = Math.floor(Math.random() * pool.length);
+      card[row][col] = pool[idx];
+    }
+  }
+  // Ajusta para exatamente 5 numeros por linha (remove 4 de cada linha)
+  const colCount = Array(9).fill(3);
+  for (let row = 0; row < 3; row++) {
+    // Remove de colunas mais altas primeiro (5-8) para manter numeros baixos
+    const remover = [8, 7, 6, 5];
+    for (const col of remover) {
+      if (colCount[col] > 0) {
+        card[row][col] = '';
+        colCount[col]--;
+      }
+    }
+  }
+  return card;
+}
+
 function botComprarCartelas(roundCards, users) {
   garantirBots(users);
-  // Embaralha a ordem dos bots a cada rodada para nao parecer sequencial.
   const ordem = [...BOT_CPFS];
   for (let i = ordem.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [ordem[i], ordem[j]] = [ordem[j], ordem[i]];
   }
-  // Renomeia os bots com nomes aleatorios diferentes a cada rodada.
   const usados = new Set();
   for (const cpf of BOT_CPFS) {
     const u = users.get(cpf);
@@ -69,7 +101,6 @@ function botComprarCartelas(roundCards, users) {
       db.markDirty(cpf);
     }
   }
-  // Cada rodada: 60-80% dos bots compram (parece mais natural), quantidades variadas.
   const proporcao = randInt(60, 80);
   const compradores = Math.floor(BOT_CPFS.length * proporcao / 100);
   for (let i = 0; i < compradores; i++) {
@@ -77,7 +108,7 @@ function botComprarCartelas(roundCards, users) {
     const qtd = randInt(1, 5);
     for (let j = 0; j < qtd; j++) {
       const id = ++core.cardSeq;
-      roundCards.set(id, { id, owner: cpf, card: game.generateBingoCard() });
+      roundCards.set(id, { id, owner: cpf, card: gerarCartelaBot() });
     }
   }
 }
