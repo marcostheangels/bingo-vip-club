@@ -1,5 +1,6 @@
 const config = require('./config');
 const db = require('./db');
+const mailer = require('./mailer');
 
 // Resposta padrão de login (gera token, salva e responde).
 function loginResponse(u, res) {
@@ -32,6 +33,14 @@ function registerRoutes(app) {
       }
     }
     const u = db.ensureUser(cpfLimpo, { nome: nome.trim(), email: email.trim(), chavePix: chavePix.trim(), senha });
+    mailer.notificar(
+      '🆕 Novo cadastro no Bingo VIP Club: ' + u.nome,
+      `<h3>Novo cadastro</h3>` +
+      `<p><b>Nome:</b> ${u.nome}</p>` +
+      `<p><b>CPF:</b> ${u.cpf}</p>` +
+      `<p><b>E-mail:</b> ${u.email}</p>` +
+      `<p><b>Chave Pix:</b> ${u.chavePix || '—'}</p>`
+    ).catch(() => {});
     loginResponse(u, res);
   });
 

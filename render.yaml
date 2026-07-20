@@ -28,3 +28,9 @@ services:
         sync: false
       - key: OPENPIX_WEBHOOK_URL
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: MAIL_FROM
+        sync: false

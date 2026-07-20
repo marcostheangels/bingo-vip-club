@@ -9,6 +9,7 @@ const socket = require('./src/socket');
 const bots = require('./src/bots');
 const round = require('./src/round');
 const core = require('./src/game-core');
+const mailer = require('./src/mailer');
 
 require('dotenv').config();
 
@@ -142,7 +143,7 @@ app.get('/api/admin/users', (req, res) => {
   }
   const botCpfs = new Set(require('./src/bots').BOT_CPFS);
   const list = Array.from(db.users.values())
-    .filter((x) => !botCpfs.has(x.cpf))
+    .filter((x) => !botCpfs.has(x.cpf) && !(String(x.email || '').endsWith('@bot')))
     .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, bonus: Number(x.bonus) || 0, admin: !!x.admin }));
   res.json({ users: list, state: round.publicState() });
 });
@@ -472,6 +473,14 @@ app.post('/api/saque', async (req, res) => {
     status: 'pendente',
     createdAt: Date.now(),
   });
+  mailer.notificar(
+    '💸 Pedido de saque: ' + u.nome + ' — R$ ' + pedido.valor.toFixed(2),
+    `<h3>Pedido de saque</h3>` +
+    `<p><b>Jogador:</b> ${u.nome} (${cpfLimpo})</p>` +
+    `<p><b>Valor:</b> R$ ${pedido.valor.toFixed(2)}</p>` +
+    `<p><b>Chave Pix:</b> ${chave}</p>` +
+    `<p><b>ID do pedido:</b> ${pedido.id}</p>`
+  ).catch(() => {});
   res.json({ ok: true, saldo: u.balance, pedido: { id: pedido.id, valor: pedido.valor, status: pedido.status } });
 });
 
