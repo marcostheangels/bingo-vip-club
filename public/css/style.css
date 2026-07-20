@@ -362,7 +362,8 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .balls-board {
     background: linear-gradient(160deg, rgba(20, 28, 66, .75), rgba(8, 12, 38, .75));
     border-radius: 16px; padding: 12px; flex: 1 1 auto; min-width: 0; align-self: stretch;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 80, 80, 0.45);
+    box-shadow: 0 0 18px rgba(255, 60, 60, 0.18), inset 0 0 22px rgba(255, 60, 60, 0.06);
     overflow: auto; display: flex; flex-direction: column; gap: 6px; min-height: 0;
 }
 .balls-board-title {
@@ -442,8 +443,8 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .player-row.done-row.f-kina { background: rgba(34,211,238,.16); border-color: rgba(34,211,238,.6); box-shadow: 0 0 12px rgba(34,211,238,.35) inset; }
 .player-row.done-row.f-keno { background: rgba(249,115,22,.16); border-color: rgba(249,115,22,.6); box-shadow: 0 0 12px rgba(249,115,22,.35) inset; }
 
-/* Painel de compra */
-.buy-panel { background: var(--box-blue); border-radius: 12px; padding: 12px; flex-shrink: 0; transition: box-shadow .3s; }
+/* Painel de compra (desce para alinhar a base com o painel de bolas/acumulado) */
+.buy-panel { background: var(--box-blue); border-radius: 12px; padding: 12px; flex-shrink: 0; transition: box-shadow .3s; margin-top: auto; }
 .buy-panel.buyable { animation: buyPulse 1.4s ease-in-out infinite; }
 @keyframes buyPulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,.5), 0 12px 28px rgba(0,0,0,.55); }

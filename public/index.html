@@ -123,7 +123,17 @@
             <div class="panel-title-right">🏆 Quem está perto de ganhar <span id="fasePainel"></span></div>
             <div class="players-container" id="players-list" data-src="ui.js|style.css"></div>
 
-            <!-- PAINEL DE COMPRA DE CARTELAS -->
+            <div class="cards-bar" data-src="ui.js|style.css">
+                <strong style="font-size:16px">Cartelas: <span id="cartCount">0</span></strong>
+                <div class="cards-bar-actions">
+                    <button class="fase-tag" data-f="kuadra">Kuadra</button>
+                    <button class="fase-tag" data-f="kina">Kina</button>
+                    <button class="fase-tag" data-f="keno">Keno</button>
+                    <span class="fase-atual" id="faseJogo">Kuadra</span>
+                </div>
+            </div>
+
+            <!-- PAINEL DE COMPRA DE CARTELAS (alinhado abaixo, na base do painel de bolas/acumulado) -->
             <div class="buy-panel" id="buyPanel" data-src="ui.js|style.css">
                 <div class="buy-title">🎟️ Comprar Cartelas <span class="buy-badge" id="buyBadge">ABERTO • 60s</span></div>
                 <div class="qty-row" id="qtyRow">
@@ -147,16 +157,6 @@
                         <div class="bt-qty"><span id="totalQty">1</span> cartela(s)</div>
                     </div>
                     <button class="btn-comprar" id="btnComprar" onclick="comprarCartelas()">🎯 Comprar</button>
-                </div>
-            </div>
-
-            <div class="cards-bar" data-src="ui.js|style.css">
-                <strong style="font-size:16px">Cartelas: <span id="cartCount">0</span></strong>
-                <div class="cards-bar-actions">
-                    <button class="fase-tag" data-f="kuadra">Kuadra</button>
-                    <button class="fase-tag" data-f="kina">Kina</button>
-                    <button class="fase-tag" data-f="keno">Keno</button>
-                    <span class="fase-atual" id="faseJogo">Kuadra</span>
                 </div>
             </div>
         </div>
