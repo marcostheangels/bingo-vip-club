@@ -95,6 +95,20 @@
                     <div class="balls-board-title">BOLAS SORTEADAS</div>
                     <div class="balls-grid" id="board-grid"></div>
                 </div>
+
+                <!-- MINHAS CARTELAS COMPRADAS (ao lado das bolas sorteadas) -->
+                <div class="my-cards" id="myCards" data-src="cards.js|style.css">
+                    <div class="my-cards-title">
+                        📋 Minhas Cartelas Compradas
+                        <span class="zoom-ctrl">
+                            <button class="btn-ctrl" onclick="zoom(-1)">−</button>
+                            <button class="btn-ctrl yellow" onclick="zoom(1)">+</button>
+                        </span>
+                    </div>
+                    <div class="my-cards-scroll" id="myCardsScroll">
+                        <div class="my-cards-grid" id="myCardsGrid"></div>
+                    </div>
+                </div>
             </div>
 
             <!-- DOAÇÃO + ACUMULADO (bolas sorteadas) - proximo ao painel de bolas 1 a 90 -->
@@ -143,20 +157,6 @@
                     <button class="fase-tag" data-f="kina">Kina</button>
                     <button class="fase-tag" data-f="keno">Keno</button>
                     <span class="fase-atual" id="faseJogo">Kuadra</span>
-                </div>
-            </div>
-
-            <!-- CARTELAS COMPRADAS -->
-            <div class="my-cards" id="myCards" data-src="cards.js|style.css">
-                <div class="my-cards-title">
-                    📋 Minhas Cartelas Compradas
-                    <span class="zoom-ctrl">
-                        <button class="btn-ctrl" onclick="zoom(-1)">−</button>
-                        <button class="btn-ctrl yellow" onclick="zoom(1)">+</button>
-                    </span>
-                </div>
-                <div class="my-cards-scroll" id="myCardsScroll">
-                    <div class="my-cards-grid" id="myCardsGrid"></div>
                 </div>
             </div>
         </div>

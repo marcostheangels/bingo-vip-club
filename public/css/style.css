@@ -478,14 +478,18 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .fase-tag.active { background: var(--yellow); color: #000; opacity: 1; box-shadow: 0 0 10px rgba(255, 215, 0, .5); }
 .fase-atual { display: none; }
 
-/* Minhas cartelas */
-.my-cards { background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-.my-cards-title { font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+/* Minhas cartelas (agora ao lado do painel de bolas sorteadas 1 a 90) */
+.my-cards {
+    background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px;
+    display: flex; flex-direction: column; flex: 0 0 340px; min-width: 300px; max-width: 42%;
+    align-self: stretch; min-height: 240px; max-height: 100%;
+}
+.my-cards-title { font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .zoom-ctrl { display: flex; gap: 5px; }
 .btn-ctrl { background: #333866; color: #fff; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-weight: 700; }
 .btn-ctrl.yellow { background: var(--yellow); color: #000; }
-.my-cards-scroll { overflow-y: auto; flex: 1 1 auto; max-height: 35vh; }
-.my-cards-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.my-cards-scroll { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.my-cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-content: start; }
 
 .ticket3d { background: linear-gradient(160deg, rgba(139, 92, 255, .14), rgba(255, 255, 255, .02)); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 14px; padding: 10px; width: 100%; max-width: var(--cardw, 100px); margin: 0 auto; }
 .ticket3d.leader { border-color: var(--yellow); box-shadow: 0 0 0 2px rgba(255,215,0,.35), 0 8px 20px rgba(255,215,0,.25); }
@@ -705,6 +709,10 @@ body.editor-active [contenteditable="true"]:hover {
     .right-panel { width: 320px; flex: 0 0 320px; }
     .prize-card { min-width: 0; }
     .main-ball { width: clamp(120px, 18vw, 200px); height: clamp(120px, 18vw, 200px); }
+    /* Em telas estreitas, bolas e cartelas empilham para nao espremer */
+    .game-display { flex-wrap: wrap; }
+    .balls-board { flex: 1 1 100%; }
+    .my-cards { flex: 1 1 100%; max-width: 100%; min-width: 0; }
 }
 @media (max-width: 600px) {
     /* Mantem o layout de PC no celular (nao empilha) */
