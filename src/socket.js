@@ -64,7 +64,7 @@ function init(server) {
         qtd = Math.max(0, MAX_CARTAS_POR_JOGADOR - minhas);
         if (qtd <= 0) return cb && cb({ error: `Limite de ${MAX_CARTAS_POR_JOGADOR} cartelas por rodada atingido.` });
       }
-      const custo = qtd * game.CARD_COST;
+      const custo = qtd * (core.state.cardCost || game.CARD_COST_BASE);
       if (core.state.status === 'running') {
         return cb && cb({ error: 'Aguarde o intervalo para comprar cartelas.' });
       }
@@ -75,6 +75,7 @@ function init(server) {
         const id = ++core.cardSeq;
         core.roundCards.set(id, { id, owner, card: game.generateBingoCard() });
       }
+      core.state.totalCardsVendidos = (core.state.totalCardsVendidos || 0) + qtd;
       socket.emit('saldo', { balance: u.balance, bonus: u.bonus, deposito: u.deposito, saldoJogavel: db.saldoJogavel(owner) });
       socket.emit('myCards', round.cardsDoUser(owner));
       round.broadcastState();

@@ -15,9 +15,12 @@ const state = {};
 function novaRodada() {
   roundCards.clear();
   sorteioSeq++;
+  const cardCost = game.calcularCardCost();
+  // Estima 500 cartelas para calcular premios (ajustavel conforme base de jogadores)
+  const premios = game.calcularPremios(500, cardCost);
   Object.assign(state, {
     sorteio: sorteioSeq,
-    status: 'intermission', // intermission | running | finished
+    status: 'intermission',
     drawnBalls: [],
     currentBall: null,
     phaseIndex: 0,
@@ -25,6 +28,9 @@ function novaRodada() {
     startsAt: Date.now() + config.INTERMISSION,
     pausado: false,
     fasePausada: null,
+    totalCardsVendidos: 0,
+    cardCost,
+    premios,
   });
 }
 

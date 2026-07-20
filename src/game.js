@@ -1,7 +1,35 @@
-const CARD_COST = 0.15;
+const CARD_COST_BASE = 0.15;
 
 const PHASE_SEQUENCE = ['kuadra', 'kina', 'keno'];
 const NOME = { kuadra: 'Kuadra', kina: 'Kina', keno: 'Keno' };
+
+// Gera custo da cartela variando a cada rodada (R$0,10 ~ R$0,25)
+function calcularCardCost() {
+  const variacao = 0.9 + Math.random() * 0.6; // 0.9 a 1.5
+  return +(CARD_COST_BASE * variacao).toFixed(2);
+}
+
+// Calcula premios DINAMICOS baseados no numero estimado de cartelas vendidas.
+// Casa SEMPRE ganha: apenas 70% da receita estimada vai para premios.
+// Os valores mudam a cada rodada (variacao aleatoria nas porcentagens).
+function calcularPremios(totalCardsEstimado, cardCost) {
+  const receita = totalCardsEstimado * cardCost;
+  const pool = receita * 0.70; // casa fica com 30%
+  const sorteio = Math.floor(Math.random() * 100);
+  // Distribuicao variavel a cada rodada para nao ficar sempre igual
+  const pKua = 0.12 + (sorteio % 11) / 100;         // 12% ~ 22%
+  const pKin = 0.18 + ((sorteio + 5) % 13) / 100;    // 18% ~ 30%
+  const pKen = 0.40 + ((sorteio + 11) % 21) / 100;   // 40% ~ 60%
+  const pAcu = 0.10 + ((sorteio + 7) % 9) / 100;     // 10% ~ 18%
+  const totalPct = pKua + pKin + pKen + pAcu;
+  const minPrizes = { kuadra: 1, kina: 1, keno: 2, acumulado: 2 };
+  return {
+    kuadra: Math.max(minPrizes.kuadra, +(pool * (pKua / totalPct)).toFixed(2)),
+    kina: Math.max(minPrizes.kina, +(pool * (pKin / totalPct)).toFixed(2)),
+    keno: Math.max(minPrizes.keno, +(pool * (pKen / totalPct)).toFixed(2)),
+    acumulado: Math.max(minPrizes.acumulado, +(pool * (pAcu / totalPct)).toFixed(2)),
+  };
+}
 
 function faixaGrid(n) {
   return n <= 30 ? 'f1' : n <= 60 ? 'f2' : 'f3';
@@ -150,7 +178,7 @@ function missingForPhase(card, drawnBalls, phase) {
 }
 
 module.exports = {
-  CARD_COST,
+  CARD_COST_BASE,
   PHASE_SEQUENCE,
   NOME,
   faixaGrid,
@@ -161,4 +189,6 @@ module.exports = {
   evaluateCard,
   faltaForPhase,
   missingForPhase,
+  calcularCardCost,
+  calcularPremios,
 };

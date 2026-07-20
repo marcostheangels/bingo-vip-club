@@ -25,6 +25,7 @@ function pagar(owner, valor) {
 }
 
 function checarVencedores() {
+  const premios = core.state.premios || config.PRIZES;
   for (const phase of game.PHASE_SEQUENCE) {
     if (core.state.winners[phase]) continue;
 
@@ -47,10 +48,10 @@ function checarVencedores() {
       porJogador.get(c.owner).cardIds.push(c.id);
     }
 
-    // Divide o prêmio IGUALMENTE entre os vencedores (cada jogador, não por cartela).
+    // Divide o premio IGUALMENTE entre os vencedores.
     const vencedores = [...porJogador.values()];
     const numVencedores = vencedores.length;
-    const prizePorJogador = +(config.PRIZES[phase] / numVencedores).toFixed(2);
+    const prizePorJogador = +(premios[phase] / numVencedores).toFixed(2);
     for (const v of vencedores) {
       v.prize = prizePorJogador;
       pagar(v.owner, prizePorJogador);
@@ -68,7 +69,7 @@ function checarVencedores() {
       id: 'H' + core.state.sorteio + '_' + phase + '_' + Date.now().toString(36),
       sorteio: core.state.sorteio,
       fase: phase,
-      prize: config.PRIZES[phase],
+      prize: premios[phase],
       vencedores: vencedores.map((v) => ({ name: v.name, owner: v.owner, cardIds: v.cardIds, prize: v.prize })),
       createdAt: Date.now(),
     });
@@ -149,6 +150,7 @@ function iniciarSorteio() {
 
 function finalizarRodada() {
   if (core.state.status === 'finished') return;
+  const premios = core.state.premios || config.PRIZES;
   console.log('[round] finalizarRodada — sorteio=' + core.state.sorteio + ' bolas=' + core.state.drawnBalls.length +
     ' status=' + core.state.status + ' keno?=' + !!core.state.winners.keno);
   if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
@@ -166,7 +168,7 @@ function finalizarRodada() {
     }
     const vencedores = [...porJogador.values()];
     const numVencedores = vencedores.length;
-    const prizePorJogador = +(config.PRIZES.acumulado / numVencedores).toFixed(2);
+    const prizePorJogador = +(premios.acumulado / numVencedores).toFixed(2);
     for (const v of vencedores) {
       v.prize = prizePorJogador;
       pagar(v.owner, prizePorJogador);
@@ -192,7 +194,14 @@ function comecarRodada() {
   db.clearRound();
   core.drawTimer = null;
   emitMyCardsParaTodos();
-  if (process.env.BOTS === '1') bots.botComprarCartelas(core.roundCards, db.users);
+  if (process.env.BOTS === '1') {
+    bots.botComprarCartelas(core.roundCards, db.users);
+    // Atualiza contagem de cartelas dos bots
+    let botCards = 0;
+    const botSet = new Set(bots.BOT_CPFS);
+    for (const c of core.roundCards.values()) if (botSet.has(c.owner)) botCards++;
+    core.state.totalCardsVendidos = (core.state.totalCardsVendidos || 0) + botCards;
+  }
   // Emite o estado a cada 1s durante a intermission para manter o cliente
   // sincronizado: contador regressivo, botão de compra habilitado e painel
   // de jogadores atualizado com as cartelas novas.
@@ -293,10 +302,10 @@ function publicState() {
     startsAt: core.state.startsAt,
     pausado: !!core.state.pausado,
     fasePausada: core.state.fasePausada || null,
-    prizes: config.PRIZES,
+    prizes: core.state.premios || config.PRIZES,
     acumuladoBalls: config.ACUMULADO_BALLS,
     acumuladoAberto: !core.state.winners.keno && core.state.drawnBalls.length <= config.ACUMULADO_BALLS,
-    cardCost: game.CARD_COST,
+    cardCost: core.state.cardCost || game.CARD_COST_BASE,
     players,
     ranking: rankingPorFase,
     totalCards: core.roundCards.size,
