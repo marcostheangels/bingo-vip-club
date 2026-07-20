@@ -789,18 +789,18 @@ body.editor-active [contenteditable="true"]:hover {
     .fase-badge-won.sm { font-size: 9px; padding: 2px 5px; }
 
     /* — COMPRAR CARTELAS — preso ao fim do right-panel */
-    .buy-panel { flex-shrink: 0; padding: 8px; }
-    .buy-title { font-size: 13px; margin-bottom: 6px; }
-    .buy-cart-count { font-size: 11px; min-width: 19px; height: 17px; }
-    .buy-badge { font-size: 10px; padding: 2px 7px; }
-    .qty-row { gap: 4px; margin-bottom: 6px; }
-    .qbtn { padding: 5px 7px; font-size: 11px; min-width: 28px; }
-    .buy-controls { gap: 6px; }
-    .stepper-btn { width: 26px; height: 26px; font-size: 14px; }
-    .stepper-qty { width: 26px; font-size: 12px; }
-    .buy-total { padding: 4px 8px; }
-    .buy-total .bt-val { font-size: 12px; }
-    .btn-comprar { padding: 6px 11px; font-size: 12px; }
+    .buy-panel { flex-shrink: 0; padding: 6px; overflow: hidden; }
+    .buy-title { font-size: 12px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; }
+    .buy-cart-count { font-size: 10px; min-width: 17px; height: 15px; }
+    .buy-badge { font-size: 9px; padding: 1px 6px; }
+    .qty-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-bottom: 4px; }
+    .qbtn { padding: 4px 4px; font-size: 10px; min-width: 0; text-align: center; }
+    .buy-controls { gap: 4px; flex-wrap: nowrap; }
+    .stepper-btn { width: 24px; height: 24px; font-size: 13px; }
+    .stepper-qty { width: 24px; font-size: 11px; }
+    .buy-total { padding: 3px 6px; white-space: nowrap; }
+    .buy-total .bt-val { font-size: 11px; }
+    .btn-comprar { padding: 5px 8px; font-size: 11px; white-space: nowrap; }
 
     .cards-bar { padding: 4px 6px; }
     .cards-bar strong { font-size: 10px; }
@@ -825,11 +825,11 @@ body.editor-active [contenteditable="true"]:hover {
     .game-display { padding: 3px; }
     .player-name { max-width: 36px; min-width: 26px; font-size: 10px; }
     .player-row { font-size: 11px; }
-    .buy-title { font-size: 12px; }
-    .qbtn { font-size: 10px; min-width: 24px; padding: 4px 5px; }
-    .stepper-btn { width: 22px; height: 22px; font-size: 13px; }
-    .stepper-qty { width: 22px; font-size: 11px; }
-    .btn-comprar { padding: 5px 9px; font-size: 11px; }
+    .buy-title { font-size: 11px; }
+    .qbtn { font-size: 9px; padding: 3px 3px; }
+    .stepper-btn { width: 20px; height: 20px; font-size: 12px; }
+    .stepper-qty { width: 20px; font-size: 10px; }
+    .btn-comprar { padding: 4px 7px; font-size: 10px; }
 }
 
 /* ===== Botão Depósito ===== */
