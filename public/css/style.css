@@ -762,7 +762,7 @@ body.editor-active [contenteditable="true"]:hover {
     .grid-cell { font-size: 8px; border-radius: 3px; min-width: 0; min-height: 0; }
 
     /* — MINHAS CARTELAS — lado direito do sorteio */
-    .my-cards { display: flex; flex-direction: column; flex: 1 1 50%; padding: 6px; background: transparent; border: none; border-radius: 0; min-width: 0; max-width: none; max-height: none; overflow: hidden; }
+    .my-cards { display: flex; flex-direction: column; flex: 1 1 50%; padding: 6px; background: transparent; border: none; border-radius: 0; min-width: 0; min-height: 0; max-width: none; max-height: none; overflow: hidden; }
     .my-cards-title { font-size: 10px; margin-bottom: 4px; }
     .my-cards-scroll { overflow-y: auto; flex: 1; min-height: 0; }
     .my-cards-grid { grid-template-columns: 1fr; gap: 4px; }
