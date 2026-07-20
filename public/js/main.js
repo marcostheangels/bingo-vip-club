@@ -178,22 +178,12 @@
     if (document.visibilityState === 'visible' && !wakeSentinel) requestWakeLock();
   });
 
-  // ===== Mobile: cria layout split (cartelas à esquerda, jogadores à direita) =====
+  // ===== Mobile: garante que right-panel e center-content mantenham layout padrao =====
   if (window.innerWidth <= 900) {
     const myCards = document.getElementById('myCards');
-    const rightPanel = document.querySelector('.right-panel');
-    const mainContainer = document.querySelector('.main-container');
-    const centerContent = document.querySelector('.center-content');
-    if (myCards && rightPanel && mainContainer && centerContent) {
-      centerContent.style.flex = '0 0 auto';
-      const split = document.createElement('div');
-      split.className = 'mobile-split';
-      const cardsPanel = document.createElement('div');
-      cardsPanel.className = 'mobile-cards-panel';
-      cardsPanel.appendChild(myCards);
-      split.appendChild(cardsPanel);
-      split.appendChild(rightPanel);
-      mainContainer.appendChild(split);
+    const gameDisplay = document.querySelector('.game-display');
+    if (myCards && gameDisplay && !gameDisplay.contains(myCards)) {
+      gameDisplay.appendChild(myCards);
     }
   }
 })();
