@@ -454,9 +454,25 @@ setInterval(() => {
   if (clk) clk.innerText = new Date().toTimeString().split(' ')[0];
 }, 1000);
 
+// ===== Mobile: toggle visibilidade das cartelas =====
+function toggleCards() {
+  const el = document.getElementById('myCards');
+  if (!el) return;
+  el.classList.toggle('mobile-show');
+}
+// Fecha cartelas ao clicar fora (mobile)
+document.addEventListener('click', (e) => {
+  const el = document.getElementById('myCards');
+  if (!el || !el.classList.contains('mobile-show')) return;
+  if (!el.contains(e.target) || e.target.closest('.btn-mobile-toggle')) {
+    el.classList.remove('mobile-show');
+  }
+});
+
 window.renderState = renderState;
 window.showWinOverlay = showWinOverlay;
 window.showJackpot = showJackpot;
 window.alterar = alterar;
 window.comprarCartelas = comprarCartelas;
 window.zoom = zoom;
+window.toggleCards = toggleCards;
