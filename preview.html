@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo 3D — PRÉ-VISUALIZAÇÃO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { margin: 0; background: radial-gradient(circle at 50% 0%, #141a3e, #04041e); min-height: 100vh; }
+        .preview-tag { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 99999;
+            background: #ffd700; color: #000; font-weight: 800; padding: 6px 16px; border-radius: 20px;
+            font-family: Poppins, sans-serif; font-size: 13px; letter-spacing: .5px; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+    </style>
+</head>
+<body>
+    <div class="preview-tag">PRÉ-VISUALIZAÇÃO (dados fictícios)</div>
+
+    <div class="orb a"></div><div class="orb b"></div>
+
+    <div class="status-banner show"><span class="st-ico">🔔</span><span>Carregando...</span></div>
+
+    <header>
+        <div class="logo-area">
+            <img class="logo-img" src="bingo1.jpeg" alt="Bingo VIP Club">
+            <span class="logo-text">BINGO VIP CLUB</span>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-action btn-deposito"><span class="material-icons" style="color:#ffd700">account_balance_wallet</span><span class="dep-label">Depósito</span></button>
+            <button class="btn-action btn-saque"><span class="material-icons" style="color:#34d399">payments</span><span class="saque-label">Sacar</span></button>
+            <button class="btn-action"><span class="material-icons" style="color:#ffd700">volume_up</span><span class="som-label">Som</span></button>
+            <button class="btn-action"><span class="material-icons ic-sair">exit_to_app</span>Sair</button>
+        </div>
+        <div class="user-info">
+            <span>Olá, <span>Marcos</span></span>
+            <div class="balance-box">
+                <div class="balance-val">R$ 50,00</div>
+                <div style="font-size:10px;color:rgba(255,255,255,0.5)">Saldo ▼</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="center-content">
+            <div class="prizes-row">
+                <div class="prize-card"><span>Kuadra</span><strong>R$ 20,00</strong></div>
+                <div class="prize-card"><span>Kina</span><strong>R$ 30,00</strong></div>
+                <div class="prize-card"><span>Keno</span><strong>R$ 100,00</strong></div>
+                <div class="prize-card"><span>Sorteio</span><strong>#000123</strong></div>
+                <div class="prize-card acumulado">
+                    <div class="badge-acumulado">35</div>
+                    <span>Acumulado</span><strong>R$ 1.000,00</strong>
+                    <div class="ac-status">Até a bola 35</div>
+                </div>
+            </div>
+
+            <div class="game-display">
+                <div class="countdown-overlay show">
+                    <div class="countdown-label">PRÓXIMA PARTIDA EM</div>
+                    <div class="countdown-time">60</div>
+                    <div class="countdown-hint">🎟️ Compre suas cartelas agora!</div>
+                    <div class="cd-info-cards" id="cdInfoCards">
+                        <div class="cd-ic"><span class="cd-ic-ico">🎟️</span><div><small>Cada cartela</small><b>R$ 0,15</b></div></div>
+                        <div class="cd-ic"><span class="cd-ic-ico">🏆</span><div><small>Kuadra</small><b>R$ 20,00</b></div></div>
+                        <div class="cd-ic"><span class="cd-ic-ico">✦</span><div><small>Kina</small><b>R$ 30,00</b></div></div>
+                        <div class="cd-ic"><span class="cd-ic-ico">👑</span><div><small>Keno</small><b>R$ 100,00</b></div></div>
+                        <div class="cd-ic"><span class="cd-ic-ico">💰</span><div><small>Acumulado</small><b>R$ 1.000,00</b></div></div>
+                    </div>
+                </div>
+                <div class="game-left">
+                    <div class="main-ball">--</div>
+                    <div class="info-card hora-center"><span>Hora</span><strong>00:00:00</strong></div>
+                </div>
+                <div class="balls-board">
+                    <div class="balls-board-title">BOLAS SORTEADAS</div>
+                    <div class="balls-grid"></div>
+                </div>
+            </div>
+
+            <div class="ordem-row">
+                <div class="ordem-box"><span>DOAÇÃO</span><div class="acumulado-count">R$ 0,15</div></div>
+                <div class="ordem-box"><span>ACUMULADO</span><div class="acumulado-count">0</div><span class="acumulado-legenda">bolas sorteadas</span></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="panel-title-right">🏆 Quem está perto de ganhar — Kuadra</div>
+            <div class="players-container"></div>
+
+            <div class="buy-panel buyable">
+                <div class="buy-title">🎟️ Comprar Cartelas <span class="buy-badge">ABERTO • 60s</span></div>
+                <div class="qty-row">
+                    <button class="qbtn" data-q="5">5</button>
+                    <button class="qbtn" data-q="10">10</button>
+                    <button class="qbtn" data-q="20">20</button>
+                    <button class="qbtn" data-q="30">30</button>
+                    <button class="qbtn" data-q="40">40</button>
+                    <button class="qbtn" data-q="50">50</button>
+                    <button class="qbtn" data-q="100">100</button>
+                    <button class="qbtn" data-q="200">200</button>
+                </div>
+                <div class="buy-controls">
+                    <div class="buy-stepper">
+                        <button class="stepper-btn">−</button>
+                        <span class="stepper-qty">1</span>
+                        <button class="stepper-btn yellow">+</button>
+                    </div>
+                    <div class="buy-total">
+                        <div class="bt-val">R$ 0,15</div>
+                        <div class="bt-qty"><span>1</span> cartela(s)</div>
+                    </div>
+                    <button class="btn-comprar">🎯 Comprar</button>
+                </div>
+
+                <!-- CARDS INFORMATIVOS DA RODADA -->
+                <div class="round-info-cards" id="roundInfoCards">
+                    <div class="ric-item"><span class="ric-ico">🎟️</span><div class="ric-body"><strong>Cada cartela</strong><b>R$ 0,15</b></div></div>
+                    <div class="ric-item"><span class="ric-ico">⏳</span><div class="ric-body"><strong>Compre até</strong><b>60s</b></div></div>
+                    <div class="ric-item"><span class="ric-ico">🏆</span><div class="ric-body"><strong>Kuadra</strong><b>R$ 20,00</b></div></div>
+                    <div class="ric-item"><span class="ric-ico">✦</span><div class="ric-body"><strong>Kina</strong><b>R$ 30,00</b></div></div>
+                    <div class="ric-item"><span class="ric-ico">👑</span><div class="ric-body"><strong>Keno</strong><b>R$ 100,00</b></div></div>
+                    <div class="ric-item"><span class="ric-ico">💰</span><div class="ric-body"><strong>Acumulado</strong><b>R$ 1.000,00</b></div></div>
+                </div>
+            </div>
+
+            <div class="cards-bar">
+                <strong style="font-size:16px">Cartelas: <span>0</span></strong>
+                <div class="cards-bar-actions">
+                    <button class="fase-tag" data-f="kuadra">Kuadra</button>
+                    <button class="fase-tag" data-f="kina">Kina</button>
+                    <button class="fase-tag" data-f="keno">Keno</button>
+                    <span class="fase-atual">Kuadra</span>
+                </div>
+            </div>
+
+            <div class="my-cards">
+                <div class="my-cards-title">📋 Minhas Cartelas Compradas</div>
+                <div class="my-cards-scroll"><div class="my-cards-grid"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARDS INFORMATIVOS (transparência) -->
+    <section class="info-cards" id="infoCards">
+        <div class="info-card-item">
+            <span class="info-ico">💳</span>
+            <div class="info-body"><strong>Crédito é sacável</strong><p>O <b>Crédito</b> (saldo liberado pelo administrador) e os prêmios <b>podem ser sacados</b>.</p></div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🏦</span>
+            <div class="info-body"><strong>Depósito PIX não é sacável</strong><p>O valor que você deposita serve apenas para jogar. <b>Não pode ser sacado</b>.</p></div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🎁</span>
+            <div class="info-body"><strong>Bônus só para jogar</strong><p>O bônus de cadastro e eventuais bônus <b>não são sacáveis</b>, servem apenas para apostar.</p></div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🏆</span>
+            <div class="info-body"><strong>Prêmios são sacáveis</strong><p>É sacável o que você <b>ganhar nas rodadas Kuadra, Kina e Keno</b>.</p></div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🔟</span>
+            <div class="info-body"><strong>Saque mínimo R$ 10,00</strong><p>O valor mínimo para solicitar um saque é de <b>R$ 10,00</b>, pago via Pix pelo admin.</p></div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🎟️</span>
+            <div class="info-body"><strong>Cada cartela = R$ 0,15</strong><p>Compre quantas quiser. Prêmios pagos conforme a regra de cada rodada.</p></div>
+        </div>
+    </section>
+
+</body>
+</html>

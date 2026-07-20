@@ -77,7 +77,7 @@
       <div class="dep-selecionado">Valor selecionado: <b id="depSelecionado">R$ 0,00</b></div>
       <button class="dep-confirm" id="depConfirm">Gerar PIX</button>
       <div class="dep-msg" id="depMsg"></div>
-      <div class="dep-warn">⚠️ Atenção: o <b>Crédito (saldo sacável)</b> depositado aqui pode ser usado para jogar e sacado. O <b>Bônus</b> e eventuais prêmios têm regras próprias e <b>não são sacáveis</b>.</div>
+      <div class="dep-warn">⚠️ <b>Atenção:</b> É sacável apenas o <b>Crédito</b> (saldo liberado pelo administrador) e o que você <b>ganhar nas rodadas Kuadra, Kina e Keno</b>. O <b>depósito PIX</b> e o <b>bônus só podem ser usados para jogar</b> e não são sacáveis. Valor mínimo para saque: <b>R$ 10,00</b>.</div>
       <div class="dep-hint">Escaneie o QR Code com o app do seu banco e pague. Depois clique em "Já paguei" para o administrador confirmar e creditar seu saldo.</div>
     `;
   }

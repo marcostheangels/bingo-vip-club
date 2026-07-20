@@ -21,7 +21,7 @@
     const msg = document.getElementById('saqueMsg');
     const v = parseFloat(document.getElementById('saqueValor').value.replace(',', '.'));
     const pix = document.getElementById('saquePix').value.trim();
-    if (!v || v < 1) { msg.className = 'dep-msg'; msg.textContent = 'Informe um valor válido (mín. R$ 1,00).'; return; }
+    if (!v || v < 10) { msg.className = 'dep-msg'; msg.textContent = 'Informe um valor válido (mín. R$ 10,00).'; return; }
     if (!pix) { msg.className = 'dep-msg'; msg.textContent = 'Informe sua chave Pix.'; return; }
     msg.className = 'dep-msg'; msg.textContent = 'Enviando...';
     try {

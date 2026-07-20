@@ -72,8 +72,15 @@
                 <div class="countdown-overlay" id="countdownOverlay">
                     <div class="countdown-label">PRÓXIMA PARTIDA EM</div>
                     <div class="countdown-time" id="countdownTime">60</div>
-                    <div class="countdown-hint">🎟️ Compre suas cartelas agora!</div>
+                <div class="countdown-hint">🎟️ Compre suas cartelas agora!</div>
+                <div class="cd-info-cards" id="cdInfoCards">
+                    <div class="cd-ic"><span class="cd-ic-ico">🎟️</span><div><small>Cada cartela</small><b>R$ 0,15</b></div></div>
+                    <div class="cd-ic"><span class="cd-ic-ico">🏆</span><div><small>Kuadra</small><b id="cdKuadra">R$ 20,00</b></div></div>
+                    <div class="cd-ic"><span class="cd-ic-ico">✦</span><div><small>Kina</small><b id="cdKina">R$ 30,00</b></div></div>
+                    <div class="cd-ic"><span class="cd-ic-ico">👑</span><div><small>Keno</small><b id="cdKeno">R$ 100,00</b></div></div>
+                    <div class="cd-ic"><span class="cd-ic-ico">💰</span><div><small>Acumulado</small><b id="cdAcum">R$ 1.000,00</b></div></div>
                 </div>
+            </div>
                 <div class="game-left">
                     <div class="main-ball" id="mainBall">--</div>
                     <div class="info-card hora-center"><span>Hora</span><strong id="live-clock">00:00:00</strong></div>
@@ -136,6 +143,34 @@
                 </div>
             </div>
 
+            <!-- CARDS INFORMATIVOS DA RODADA (visíveis ao comprar cartelas) -->
+            <div class="round-info-cards" id="roundInfoCards">
+                <div class="ric-item">
+                    <span class="ric-ico">🎟️</span>
+                    <div class="ric-body"><strong>Cada cartela</strong><b>R$ 0,15</b></div>
+                </div>
+                <div class="ric-item">
+                    <span class="ric-ico">⏳</span>
+                    <div class="ric-body"><strong>Compre até</strong><b id="ricCountdown">60s</b></div>
+                </div>
+                <div class="ric-item">
+                    <span class="ric-ico">🏆</span>
+                    <div class="ric-body"><strong>Kuadra</strong><b id="ricKuadra">R$ 20,00</b></div>
+                </div>
+                <div class="ric-item">
+                    <span class="ric-ico">✦</span>
+                    <div class="ric-body"><strong>Kina</strong><b id="ricKina">R$ 30,00</b></div>
+                </div>
+                <div class="ric-item">
+                    <span class="ric-ico">👑</span>
+                    <div class="ric-body"><strong>Keno</strong><b id="ricKeno">R$ 100,00</b></div>
+                </div>
+                <div class="ric-item">
+                    <span class="ric-ico">💰</span>
+                    <div class="ric-body"><strong>Acumulado</strong><b id="ricAcum">R$ 1.000,00</b></div>
+                </div>
+            </div>
+
             <div class="cards-bar" data-src="ui.js|style.css">
                 <strong style="font-size:16px">Cartelas: <span id="cartCount">0</span></strong>
                 <div class="cards-bar-actions">
@@ -162,6 +197,52 @@
         </div>
 
     </div>
+
+    <!-- CARDS INFORMATIVOS (transparência para o jogador) -->
+    <section class="info-cards" id="infoCards">
+        <div class="info-card-item">
+            <span class="info-ico">💳</span>
+            <div class="info-body">
+                <strong>Crédito é sacável</strong>
+                <p>O <b>Crédito</b> (saldo liberado pelo administrador) e os prêmios <b>podem ser sacados</b>.</p>
+            </div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🏦</span>
+            <div class="info-body">
+                <strong>Depósito PIX não é sacável</strong>
+                <p>O valor que você deposita serve apenas para jogar. <b>Não pode ser sacado</b>.</p>
+            </div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🎁</span>
+            <div class="info-body">
+                <strong>Bônus só para jogar</strong>
+                <p>O bônus de cadastro e eventuais bônus <b>não são sacáveis</b>, servem apenas para apostar.</p>
+            </div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🏆</span>
+            <div class="info-body">
+                <strong>Prêmios são sacáveis</strong>
+                <p>É sacável o que você <b>ganhar nas rodadas Kuadra, Kina e Keno</b>.</p>
+            </div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🔟</span>
+            <div class="info-body">
+                <strong>Saque mínimo R$ 10,00</strong>
+                <p>O valor mínimo para solicitar um saque é de <b>R$ 10,00</b>, pago via Pix pelo admin.</p>
+            </div>
+        </div>
+        <div class="info-card-item">
+            <span class="info-ico">🎟️</span>
+            <div class="info-body">
+                <strong>Cada cartela = R$ 0,15</strong>
+                <p>Compre quantas quiser. Prêmios pagos conforme a regra de cada rodada.</p>
+            </div>
+        </div>
+    </section>
 
     <!-- redeploy trigger 2026-07-18 -->
     <!-- Overlay de Jackpot (Acumulado) -->
@@ -220,7 +301,7 @@
             </div>
             <button class="dep-confirm" id="saqueConfirm" style="background:linear-gradient(145deg,#22d3ee,#8b5cff)">Enviar pedido</button>
             <div class="dep-msg" id="saqueMsg"></div>
-            <div class="dep-warn">⚠️ Atenção: apenas o <b>Crédito (saldo sacável)</b> pode ser sacado. <b>Bônus e depósitos via PIX</b> não são sacáveis.</div>
+            <div class="dep-warn">⚠️ <b>Atenção:</b> É sacável apenas o <b>Crédito</b> (saldo liberado pelo administrador) e o que você <b>ganhar nas rodadas Kuadra, Kina e Keno</b>. O <b>depósito PIX</b> e o <b>bônus só podem ser usados para jogar</b> e não são sacáveis. Valor mínimo para saque: <b>R$ 10,00</b>.</div>
             <div class="dep-hint">O saque é analisado pelo administrador e pago via Pix. Informe a chave cadastrada no seu perfil.</div>
         </div>
     </div>

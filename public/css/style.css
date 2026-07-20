@@ -252,6 +252,20 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 }
 @keyframes cdPulse { 50% { transform: scale(1.08); } }
 .countdown-hint { font-size: 14px; font-weight: 600; color: var(--neon-2); text-shadow: 0 0 10px rgba(34,211,238,.4); }
+.cd-info-cards {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  margin-top: 16px; max-width: 520px;
+}
+.cd-ic {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(145deg, rgba(34,211,238,0.14), rgba(139,92,255,0.14));
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 12px;
+  padding: 9px 13px; box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+.cd-ic-ico { font-size: 18px; filter: drop-shadow(0 0 6px rgba(34,211,238,0.5)); }
+.cd-ic div { display: flex; flex-direction: column; line-height: 1.1; }
+.cd-ic small { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: .3px; }
+.cd-ic b { font-size: 14px; font-weight: 800; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
 /* ===== Painel da Fase ===== */
 .phase-panel {
     display: none; /* painel Fase em Disputa oculto por solicitacao */
@@ -818,4 +832,95 @@ body.editor-active [contenteditable="true"]:hover {
 .aviso-flutuante.info { background: linear-gradient(145deg, #6366f1, #4f46e5); }
 .aviso-flutuante.erro { background: linear-gradient(145deg, #dc2626, #b91c1c); }
 .de-pix .pix-qr-img { width: 200px; height: 200px; margin: 0 auto 12px; background: #fff; border-radius: 14px; padding: 10px; display: block; }
+
+/* ===== Cards informativos (transparência) ===== */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  max-width: 1400px;
+  margin: 26px auto;
+  padding: 0 18px;
+}
+.info-card-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: linear-gradient(145deg, rgba(34,211,238,0.10), rgba(139,92,255,0.10));
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+.info-card-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(34,211,238,0.5);
+  box-shadow: 0 12px 30px rgba(34,211,238,0.18);
+}
+.info-ico {
+  font-size: 26px;
+  line-height: 1;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 8px rgba(34,211,238,0.5));
+}
+.info-body strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  text-shadow: 0 0 10px rgba(34,211,238,0.25);
+}
+.info-body p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255,255,255,0.78);
+}
+.info-body p b { color: #ffd700; font-weight: 700; }
+@media (max-width: 600px) {
+  .info-cards { grid-template-columns: 1fr; margin: 18px auto; }
+}
+
+/* ===== Cards informativos da rodada (dentro do painel de compra) ===== */
+.round-info-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+.ric-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(145deg, rgba(34,211,238,0.12), rgba(139,92,255,0.12));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 10px 11px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+}
+.ric-ico {
+  font-size: 18px;
+  line-height: 1;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 6px rgba(34,211,238,0.5));
+}
+.ric-body { display: flex; flex-direction: column; line-height: 1.1; }
+.ric-body strong {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+.ric-body b {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255,215,0,0.35);
+}
+@media (max-width: 600px) {
+  .round-info-cards { grid-template-columns: repeat(2, 1fr); }
+}
 

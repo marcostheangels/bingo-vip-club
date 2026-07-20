@@ -443,7 +443,7 @@ app.post('/api/saque', (req, res) => {
     return res.status(401).json({ error: 'Sessão inválida.' });
   }
   const v = parseFloat(String(valor).replace(',', '.'));
-  if (!v || v < 1) return res.status(400).json({ error: 'Valor mínimo de saque é R$ 1,00.' });
+  if (!v || v < 10) return res.status(400).json({ error: 'Valor mínimo de saque é R$ 10,00.' });
   const chave = String(pix || u.chavePix || '').trim();
   if (!chave) return res.status(400).json({ error: 'Informe uma chave Pix.' });
   if (u.balance < v) return res.status(400).json({ error: 'Saldo insuficiente para este saque.' });

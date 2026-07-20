@@ -111,6 +111,17 @@ function renderState(s) {
   setTxt('prizeKeno', brlCompact(s.prizes.keno));
   setTxt('prizeAcumulado', brlCompact(s.prizes.acumulado));
 
+  // Cards informativos da rodada (compra de cartelas)
+  setTxt('ricKuadra', brlCompact(s.prizes.kuadra));
+  setTxt('ricKina', brlCompact(s.prizes.kina));
+  setTxt('ricKeno', brlCompact(s.prizes.keno));
+  setTxt('ricAcum', brlCompact(s.prizes.acumulado));
+  setTxt('ricCountdown', (s.status === 'intermission' && s.startsAt) ? Math.max(0, Math.ceil((s.startsAt - Date.now()) / 1000)) + 's' : '—');
+  setTxt('cdKuadra', brlCompact(s.prizes.kuadra));
+  setTxt('cdKina', brlCompact(s.prizes.kina));
+  setTxt('cdKeno', brlCompact(s.prizes.keno));
+  setTxt('cdAcum', brlCompact(s.prizes.acumulado));
+
   // Acumulado: meta de fechar a cartela até a bola N
   setTxt('acBadge', s.acumuladoBalls);
   const acCard = document.getElementById('acCard');
@@ -280,6 +291,8 @@ function updateCountdown() {
     timeEl.classList.toggle('urgent', secs <= 10);
   }
   if (badge) badge.textContent = `ABERTO • ${secs}s`;
+  setTxt('ricCountdown', secs + 's');
+  setTxt('cdCountdown', secs + 's');
 }
 setInterval(updateCountdown, 250);
 console.log('[bingo] ui.js carregado — CLIENT_VER=' + (window.CLIENT_VER || '?'));
