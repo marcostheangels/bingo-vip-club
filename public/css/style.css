@@ -189,12 +189,13 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
     flex: 1; min-width: 0; border-radius: 16px; padding: 15px 10px; text-align: center;
     border: 2px solid rgba(255, 255, 255, 0.12);
 }
-.prize-card.acumulado { background: linear-gradient(160deg, #b3132f, #5e0a1c); position: relative; }
+.prize-card.acumulado { background: linear-gradient(160deg, #b3132f, #5e0a1c); position: relative; overflow: visible; }
 .badge-acumulado {
-    position: absolute; top: -10px; right: -10px; background: #000; color: #ffd700;
-    border: 2px solid #ffd700; border-radius: 50%; width: 30px; height: 30px; font-size: 12px;
+    position: absolute; top: -12px; right: -8px; background: #000; color: #ffd700;
+    border: 2px solid #ffd700; border-radius: 50%; width: 36px; height: 36px; font-size: 13px;
     display: flex; align-items: center; justify-content: center; font-weight: 800;
-    box-shadow: 0 0 12px rgba(255,215,0,.5);
+    box-shadow: 0 0 16px rgba(255,215,0,.6);
+    z-index: 2;
 }
 .ac-status { font-size: 10px; font-weight: 700; color: #ffd700; margin-top: 4px; letter-spacing: .3px; }
 .prize-card.acumulado.closed { filter: grayscale(.6) brightness(.7); }
@@ -395,7 +396,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .right-panel::-webkit-scrollbar { display: none; }
 .right-panel { -ms-overflow-style: none; scrollbar-width: none; }
 
-.players-container { background: var(--panel-bg); border-radius: 10px; padding: 8px; overflow-y: auto; flex: 1 1 auto; max-height: min(360px, 45vh); min-height: 0; }
+.players-container { background: var(--panel-bg); border-radius: 10px; padding: 8px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
 .fase-painel { font-size: 11px; color: #ff9a33; font-weight: 700; }
 /* Título do painel "Quem está perto" com brilho da fase atual (estilo cassino) */
 .panel-title-right .fase-painel { animation: fasePainelGlow 1.8s ease-in-out infinite; }
@@ -770,7 +771,7 @@ body.editor-active [contenteditable="true"]:hover {
     .prize-card { flex: 0 0 auto; min-width: 58px; padding: 4px 3px; border-radius: 8px; }
     .prize-card span { font-size: 7px; margin-bottom: 1px; }
     .prize-card strong { font-size: 10px; }
-    .badge-acumulado { width: 18px; height: 18px; font-size: 7px; top: -5px; right: -5px; border-width: 1px; }
+    .badge-acumulado { width: 26px; height: 26px; font-size: 9px; top: -10px; right: -4px; border-width: 1.5px; }
     .ac-status { font-size: 6px; margin-top: 1px; }
 
     /* Game display - layout horizontal compacto */
@@ -814,7 +815,7 @@ body.editor-active [contenteditable="true"]:hover {
     .panel-title-right { font-size: 9px; margin-bottom: 2px; }
 
     /* Players */
-    .players-container { max-height: var(--players-max-h); padding: 4px; }
+    .players-container { padding: 4px; }
     .player-row { padding: 3px 4px; font-size: 9px; margin-bottom: 3px; gap: 4px; border-radius: 4px; }
     .prank { font-size: 8px; min-width: 10px; }
     .pcode { font-size: 8px; min-width: 28px; }
@@ -865,6 +866,7 @@ body.editor-active [contenteditable="true"]:hover {
     .prize-card { min-width: 48px; padding: 3px 2px; }
     .prize-card span { font-size: 6px; }
     .prize-card strong { font-size: 9px; }
+    .badge-acumulado { width: 22px; height: 22px; font-size: 8px; top: -9px; right: -3px; }
 
     :root {
         --right-width: 42vw;
