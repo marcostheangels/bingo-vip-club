@@ -80,7 +80,7 @@ function checarVencedores() {
     // PARA IMEDIATAMENTE o sorteio ao fechar uma fase: nenhuma bola extra é
     // sorteada até o overlay de vitória fechar. A próxima fase só recomeça
     // após o tempo de comemoração.
-    if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+    if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
     if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
     core.state.pausado = true;
     core.state.fasePausada = phase;
@@ -88,11 +88,10 @@ function checarVencedores() {
     const faseAtual = phase;
     core.resumeTimer = setTimeout(() => {
       core.resumeTimer = null;
-      // Só retoma se a rodada ainda estiver ativa e não for a última fase (Keno encerra tudo).
       if (faseAtual !== 'keno' && core.state.status === 'running' && !core.state.winners.keno) {
         core.state.pausado = false;
         core.state.fasePausada = null;
-        if (!core.drawTimer) core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+        if (!core.drawTimer) core.drawTimer = setTimeout(sortearBolaLoop, config.DRAW_INTERVAL);
         broadcastState();
       }
     }, 4500);
@@ -108,7 +107,15 @@ function sortearBolaLoop() {
   }
   checarVencedores();
   broadcastState();
-  if (core.state.winners.keno || core.state.drawnBalls.length >= 90) finalizarRodada();
+  if (core.state.winners.keno || core.state.drawnBalls.length >= 90) {
+    finalizarRodada();
+    return;
+  }
+  // Se checarVencedores encontrou ganhador, ela pausou o jogo e limpou o timer.
+  // Nao agenda proxima bola se o jogo estiver pausado.
+  if (!core.state.pausado && core.state.status === 'running') {
+    core.drawTimer = setTimeout(sortearBolaLoop, config.DRAW_INTERVAL);
+  }
 }
 
 // Retoma uma rodada não-finalizada salva no banco (caso o servidor tenha caído).
@@ -123,15 +130,14 @@ async function restaurarRodada() {
   core.roundCards.clear();
   for (const c of snap.cards) core.roundCards.set(c.id, { id: c.id, owner: c.owner, card: c.card });
   // Se estava em sorteio, retoma o timer; se em intermission, agenda início.
-  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.state.status === 'running') {
     if (core.state.pausado) {
-      // Estava congelado no overlay de uma fase (ex.: Keno). Desbloqueia para evitar timer orfao.
       core.state.pausado = false;
       core.state.fasePausada = null;
     }
-    core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+    core.drawTimer = setTimeout(sortearBolaLoop, config.DRAW_INTERVAL);
     console.log('[round] rodada retomada (running) bolas:', core.state.drawnBalls.length);
   } else if (core.state.status === 'intermission') {
     const restante = Math.max(1000, (core.state.startsAt || 0) - Date.now());
@@ -144,12 +150,12 @@ async function restaurarRodada() {
 }
 
 function iniciarSorteio() {
-  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.iniciarSorteio();
   broadcastState();
-  core.drawTimer = setInterval(sortearBolaLoop, config.DRAW_INTERVAL);
+  core.drawTimer = setTimeout(sortearBolaLoop, config.DRAW_INTERVAL);
 }
 
 function finalizarRodada() {
@@ -157,7 +163,7 @@ function finalizarRodada() {
   const premios = core.state.premios || config.PRIZES;
   console.log('[round] finalizarRodada — sorteio=' + core.state.sorteio + ' bolas=' + core.state.drawnBalls.length +
     ' status=' + core.state.status + ' keno?=' + !!core.state.winners.keno);
-  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.finalizarRodada();
@@ -190,7 +196,7 @@ function finalizarRodada() {
 
 function comecarRodada() {
   console.log('[round] comecarRodada — novo sorteio=' + (core.state.sorteio + 1) + ' status anterior=' + core.state.status);
-  if (core.drawTimer) { clearInterval(core.drawTimer); core.drawTimer = null; }
+  if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.novaRodada();
