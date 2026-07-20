@@ -7,7 +7,7 @@ let fromAddress = null;
 function init() {
   const apiKey = process.env.RESEND_API_KEY;
   destino = process.env.NOTIFY_EMAIL;
-  fromAddress = process.env.MAIL_FROM || 'Bingo VIP Club <noreply@bingovipclub.online>';
+  fromAddress = process.env.MAIL_FROM || 'Bingo VIP Club <onboarding@resend.dev>';
   if (!apiKey || !destino) {
     console.warn('[mailer] Notificações por e-mail DESATIVADAS (defina RESEND_API_KEY e NOTIFY_EMAIL no .env).');
     return;
