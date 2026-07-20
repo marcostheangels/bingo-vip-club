@@ -762,11 +762,13 @@ body.editor-active [contenteditable="true"]:hover {
     .balls-grid { gap: 1px; }
     .grid-cell { font-size: 8px; border-radius: 4px; min-width: 0; min-height: 0; }
 
-    /* — MINHAS CARTELAS — toggle fullscreen */
-    .my-cards { display: none; }
-    .my-cards.mobile-show { display: flex; position: fixed; inset: 0; z-index: 100; max-height: 100vh; border-radius: 0; padding: 12px; background: rgba(4,4,30,.98); }
-    .my-cards.mobile-show .my-cards-scroll { flex: 1; }
-    .btn-mobile-toggle { display: inline-flex !important; }
+    /* — MINHAS CARTELAS — movido via JS para o right-panel, visivel diretamente */
+    .my-cards { display: flex; flex-direction: column; flex-shrink: 0; border: none; border-radius: 0; padding: 6px 8px; background: transparent; min-width: 0; max-width: none; max-height: 40vh; overflow: hidden; }
+    .my-cards-title { font-size: 11px; margin-bottom: 6px; }
+    .my-cards-scroll { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+    .my-cards-grid { grid-template-columns: 1fr; gap: 6px; }
+    .zoom-ctrl .btn-ctrl { width: 22px; height: 22px; font-size: 11px; }
+    .btn-mobile-toggle { display: none !important; }
     .ordem-row { display: none; }
 
     /* — PAINEL DIREITO — ocupa o resto da tela, scroll so nos players */

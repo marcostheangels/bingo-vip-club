@@ -177,4 +177,13 @@
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && !wakeSentinel) requestWakeLock();
   });
+
+  // ===== Mobile: move painel de cartelas para dentro do right-panel =====
+  if (window.innerWidth <= 900) {
+    const myCards = document.getElementById('myCards');
+    const buyPanel = document.getElementById('buyPanel');
+    if (myCards && buyPanel) {
+      buyPanel.parentNode.insertBefore(myCards, buyPanel);
+    }
+  }
 })();
