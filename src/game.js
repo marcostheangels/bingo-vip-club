@@ -27,7 +27,7 @@ function calcularPremios(totalCardsEstimado, cardCost) {
     kuadra: Math.max(minPrizes.kuadra, +(pool * (pKua / totalPct)).toFixed(2)),
     kina: Math.max(minPrizes.kina, +(pool * (pKin / totalPct)).toFixed(2)),
     keno: Math.max(minPrizes.keno, +(pool * (pKen / totalPct)).toFixed(2)),
-    acumulado: Math.max(minPrizes.acumulado, +(pool * (pAcu / totalPct)).toFixed(2)),
+    acumulado: 1000,
   };
 }
 
