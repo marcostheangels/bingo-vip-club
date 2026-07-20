@@ -762,8 +762,8 @@ body.editor-active [contenteditable="true"]:hover {
     .balls-grid { gap: 1px; }
     .grid-cell { font-size: 8px; border-radius: 4px; min-width: 0; min-height: 0; }
 
-    /* — MINHAS CARTELAS — movido via JS para o right-panel, visivel diretamente */
-    .my-cards { display: flex; flex-direction: column; flex-shrink: 0; border: none; border-radius: 0; padding: 6px 8px; background: transparent; min-width: 0; max-width: none; max-height: 40vh; overflow: hidden; }
+    /* — MINHAS CARTELAS — lado esquerdo do split */
+    .my-cards { display: flex; flex-direction: column; flex: 1; border: none; border-radius: 0; padding: 6px; background: transparent; min-width: 0; max-width: none; max-height: none; overflow: hidden; }
     .my-cards-title { font-size: 11px; margin-bottom: 6px; }
     .my-cards-scroll { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
     .my-cards-grid { grid-template-columns: 1fr; gap: 6px; }
@@ -771,10 +771,15 @@ body.editor-active [contenteditable="true"]:hover {
     .btn-mobile-toggle { display: none !important; }
     .ordem-row { display: none; }
 
-    /* — PAINEL DIREITO — ocupa o resto da tela, scroll so nos players */
-    .right-panel { width: 100%; flex: 1 1 auto; gap: 6px; overflow: hidden; }
-    .panel-title-right { font-size: 11px; }
-    .players-container { padding: 6px; flex: 1 1 auto; overflow-y: auto; max-height: 35vh; }
+    /* — SPLIT: cartelas à esquerda, jogadores + comprar à direita — */
+    .mobile-split { display: flex; flex-direction: row; flex: 1 1 auto; min-height: 0; overflow: hidden; gap: 4px; }
+    .mobile-cards-panel { flex: 1 1 50%; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+    .mobile-cards-panel .my-cards-title { font-size: 10px; }
+
+    /* — PAINEL DIREITO — lado direito do split */
+    .right-panel { width: auto; flex: 1 1 50%; gap: 4px; overflow: hidden; }
+    .panel-title-right { font-size: 10px; }
+    .players-container { padding: 6px; flex: 1 1 auto; overflow-y: auto; }
     .player-row { padding: 4px 6px; font-size: 10px; margin-bottom: 3px; gap: 4px; }
     .prank { font-size: 9px; min-width: 10px; }
     .pcode { font-size: 9px; min-width: 24px; }
