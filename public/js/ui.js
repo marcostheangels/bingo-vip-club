@@ -183,6 +183,8 @@ function renderState(s) {
   // por jogador, a cartela mais próxima), em ordem crescente de quem falta menos
   // bolas para fechar a FASE ATUAL (Kuadra/Kina/Keno). Mostra: nº da cartela,
   // nome e os números que faltam.
+  // Só exibe os jogadores quando a partida está em andamento (running). Antes de
+  // iniciar (intermission) ou encerrada (finished), mostra aviso em vez da lista.
   try {
     if (playersContainer) playersContainer.innerHTML = '';
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
@@ -190,6 +192,12 @@ function renderState(s) {
     window.__playersGanhou = {};
     (s.players || []).forEach((p) => { if (p.ganhou && p.ganhou.length) window.__playersGanhou[p.id] = p.ganhou; });
 
+    if (s.status !== 'running') {
+      const aviso = document.createElement('div');
+      aviso.className = 'pphase-empty';
+      aviso.textContent = (s.status === 'intermission') ? 'A partida vai iniciar — aguarde o sorteio!' : 'Sorteio encerrado.';
+      playersContainer.appendChild(aviso);
+    } else {
     // ===== Lista da fase atual (quem está perto) =====
     const lista = ((s.ranking && s.ranking[faseAtual]) || []).slice();
     if (lista.length === 0) {
@@ -221,6 +229,7 @@ function renderState(s) {
           <div class="pballs">${balls}</div>`;
         playersContainer.appendChild(row);
       });
+    }
     }
   } catch (e) {
     const dbg = document.getElementById('debugPainel');
