@@ -9,22 +9,23 @@ function calcularCardCost() {
   return +(CARD_COST_BASE * variacao).toFixed(2);
 }
 
-// Calcula premios que VARIAM a cada rodada.
-// Keno sempre > Kina > Kuadra. Casa sempre ganha (bots pagam os premios).
-function calcularPremios(totalCardsEstimado, cardCost) {
-  const sorteio = Math.floor(Math.random() * 100);
-  let kuadra = 15 + (sorteio % 21);          // 15~35
-  let kina = 30 + ((sorteio + 5) % 26);       // 30~55
-  let keno = 100 + ((sorteio + 11) % 101);    // 100~200
-  // Garante hierarquia estrita: Kuadra < Kina < Keno
-  if (kuadra >= kina) kuadra = kina - 5;
-  if (kina >= keno) kina = keno - 10;
-  return {
-    kuadra: Math.max(5, kuadra),
-    kina: Math.max(10, kina),
-    keno: Math.max(50, keno),
-    acumulado: 1000,
-  };
+// Calcula prêmios PROPORCIONAIS à RECEITA REAL da rodada (cartelas de jogadores
+// reais compradas). O pagamento total nunca passa de 80% da receita -> a casa
+// sempre lucra ao menos 20% por rodada, não importa quem ganhe.
+// receitaReal = (nº de cartelas reais) x (custo da cartela).
+function calcularPremios(receitaReal) {
+  const receita = Math.max(0, Number(receitaReal) || 0);
+  // Sem receita real (ex.: só bots / ninguém comprou) => nenhum prêmio.
+  // A casa só paga com dinheiro que entrou via cartelas de jogadores reais.
+  if (receita <= 0) return { kuadra: 0, kina: 0, keno: 0, acumulado: 0 };
+  // Teto de pagamento = 80% da receita desta rodada. A casa retém 20% => lucro garantido.
+  // SEM mínimos fixos: o prêmio só existe se houver receita (nunca se paga mais do que entrou).
+  const teto = receita * 0.80;
+  const keno = +(teto * 0.45).toFixed(2);       // maior prêmio
+  const kina = +(teto * 0.28).toFixed(2);
+  const kuadra = +(teto * 0.17).toFixed(2);
+  const acumulado = +(teto * 0.10).toFixed(2);  // jackpot progressivo (dentro do teto)
+  return { kuadra, kina, keno, acumulado };
 }
 
 function faixaGrid(n) {

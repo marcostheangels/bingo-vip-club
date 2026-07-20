@@ -70,6 +70,7 @@ function init(server) {
       }
       if (db.saldoJogavel(owner) < custo) return cb && cb({ error: 'Saldo insuficiente.' });
       db.debitarParaJogar(owner, custo);
+      db.addHouse(custo); // receita da casa (só jogadores reais compram por aqui)
       db.saveUsers();
       for (let i = 0; i < qtd; i++) {
         const id = ++core.cardSeq;

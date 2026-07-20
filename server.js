@@ -145,7 +145,7 @@ app.get('/api/admin/users', (req, res) => {
   const list = Array.from(db.users.values())
     .filter((x) => !botCpfs.has(x.cpf) && !(String(x.email || '').endsWith('@bot')))
     .map((x) => ({ cpf: x.cpf, nome: x.nome, email: x.email, balance: x.balance, bonus: Number(x.bonus) || 0, admin: !!x.admin }));
-  res.json({ users: list, state: round.publicState() });
+  res.json({ users: list, state: round.publicState(), house: db.getHouse() });
 });
 
 app.post('/api/admin/force', requireAdmin, (req, res) => {

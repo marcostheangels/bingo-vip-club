@@ -243,7 +243,8 @@
         stat('Bolas', s.drawnBalls.length+'/90', '') +
         stat('Cartelas', s.totalCards, '') +
         stat('Créditos (sacáveis)', brl(sacavel), 'green') +
-        stat('Bônus em jogo', brl(bonus), 'red');
+        stat('Bônus em jogo', brl(bonus), 'red') +
+        stat('Lucro da casa', brl(data.house || 0), 'purple');
       document.getElementById('stateBox').innerHTML =
         `Sorteio <b>#${s.sorteio}</b> · Status <b>${s.status}</b> · Bolas <b>${s.drawnBalls.length}/90</b> · Cartelas <b>${s.totalCards}</b><br>`+
         `Kuadra ${s.winners.kuadra?'✅':'⏳'} · Kina ${s.winners.kina?'✅':'⏳'} · Keno ${s.winners.keno?'✅':'⏳'} · Acumulado ${s.winners.acumulado?'✅':'⏳'}`;

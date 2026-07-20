@@ -21,6 +21,7 @@ test_*.js
 
 # Dados de usuarios (nao subir para o git)
 users.json
+meta.json
 
 # Backup local (zip) — pode conter .env com credenciais
 BINGO2026_BACKUP*.zip

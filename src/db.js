@@ -13,6 +13,11 @@ const depositos = [];           // pedidos de depósito PIX: { id, cpf, nome, va
 const historico = [];           // histórico de rodadas: { id, sorteio, fase, prize, vencedores:[{name,owner,cardIds,prize}], createdAt }
 const config = require('./config');
 
+// Balanço acumulado da casa (lucro do jogo): receita de cartelas - prêmios pagos.
+// Sempre crescente enquanto a receita superar os prêmios (garantido pela casa de 20%).
+let houseBalance = 0;
+const META_FILE = path.join(__dirname, '..', 'meta.json');
+
 const USERS_FILE = path.join(__dirname, '..', 'users.json');
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -136,13 +141,23 @@ async function initDB() {
           });
         }
       } catch (e) { console.error('[db] erro carregar historico:', e.message); }
+
+      // Tabela de metadados da casa (balanço acumulado).
+      await pgPool.query(`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value NUMERIC)`).catch(() => {});
+      try {
+        const h = await pgPool.query("SELECT value FROM meta WHERE key='house'");
+        if (h.rows[0]) houseBalance = Number(h.rows[0].value) || 0;
+      } catch (e) { console.error('[db] erro carregar house:', e.message); }
+      console.log('[db] balanço da casa carregado:', houseBalance);
     } catch (e) {
       console.error('[db] Falha ao conectar PostgreSQL, usando users.json:', e.message);
       pgPool = null;
       loadUsersFile();
+      loadHouseFile();
     }
   } else {
     loadUsersFile();
+    loadHouseFile();
   }
 }
 
@@ -472,6 +487,31 @@ function saldoJogavel(cpf) {
 }
 
 
+// ===== Balanço da casa (lucro acumulado do jogo) =====
+// Receita de cartelas (addHouse +) menos prêmios pagos (addHouse -).
+// Persistido em PostgreSQL (tabela meta) ou meta.json em modo arquivo.
+function getHouse() { return +(houseBalance || 0).toFixed(2); }
+
+function addHouse(delta) {
+  houseBalance = +((houseBalance || 0) + (Number(delta) || 0)).toFixed(2);
+  if (pgPool) {
+    pgPool.query(`INSERT INTO meta (key, value) VALUES ('house', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, [houseBalance]).catch((e) => console.error('[db] addHouse:', e.message));
+  } else {
+    try { fs.writeFileSync(META_FILE, JSON.stringify({ house: houseBalance }, null, 2)); } catch (e) { console.error('[db] addHouse file:', e.message); }
+  }
+  return houseBalance;
+}
+
+// Carrega o balanço em modo arquivo (sem PostgreSQL).
+function loadHouseFile() {
+  try {
+    if (fs.existsSync(META_FILE)) {
+      const m = JSON.parse(fs.readFileSync(META_FILE, 'utf8'));
+      if (typeof m.house === 'number') houseBalance = m.house;
+    }
+  } catch (e) { console.error('[db] erro carregar meta.json:', e.message); }
+}
+
 module.exports = {
   users,
   sessions,
@@ -500,5 +540,7 @@ module.exports = {
   saveRound,
   loadRound,
   clearRound,
+  getHouse,
+  addHouse,
   isPG: () => !!pgPool,
 };

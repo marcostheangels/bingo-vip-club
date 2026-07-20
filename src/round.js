@@ -29,13 +29,9 @@ function checarVencedores() {
   for (const phase of game.PHASE_SEQUENCE) {
     if (core.state.winners[phase]) continue;
 
-    // APENAS bots podem ganhar. Jogadores reais nunca levam premio.
-    // Para nao parecer suspeito, as cartelas de jogadores reais sao ignoradas
-    // na deteccao de vencedores. O jogo continua normalmente para eles.
-    const botSet = new Set(bots.BOT_CPFS);
+    // Jogo justo: QUALQUER cartela (real ou bot) pode ganhar e receber o prêmio.
     const cartelasVencedoras = [];
     for (const c of core.roundCards.values()) {
-      if (!botSet.has(c.owner)) continue; // so bots
       const ev = game.evaluateCard(c.card, core.state.drawnBalls);
       if (ev[phase].done) cartelasVencedoras.push(c);
     }
@@ -60,6 +56,8 @@ function checarVencedores() {
       v.prize = prizePorJogador;
       pagar(v.owner, prizePorJogador);
     }
+    // Casa paga o prêmio da fase (o total do pool, rateado entre os vencedores).
+    db.addHouse(-(premios[phase] || 0));
 
     core.state.winners[phase] = {
       vencedores,
@@ -98,55 +96,9 @@ function checarVencedores() {
   }
 }
 
-// Escolhe a próxima bola de forma "casada": nunca sorteia um número que
-// completaria a cartela de um JOGADOR REAL (cadastrado), e preferencialmente
-// sorteia um que complete a cartela de um BOT (a casa ganha via bots).
-// Jogadores reais só vencem na detecção de vencedores se forem bots; aqui
-// evitamos até mesmo a aparência de vitória para o jogador comum.
-function escolherBolaRigged() {
-  const restantes = [];
-  for (let i = 1; i <= 90; i++) if (!core.state.drawnBalls.includes(i)) restantes.push(i);
-  if (restantes.length === 0) return null;
-
-  const botSet = new Set(bots.BOT_CPFS);
-  const fasesAbertas = game.PHASE_SEQUENCE.filter((p) => !core.state.winners[p]);
-  if (fasesAbertas.length === 0) {
-    // Todas as fases já fechadas (só resta acumulado/keno já resolvido): aleatório.
-    return restantes[Math.floor(Math.random() * restantes.length)];
-  }
-
-  const seguros = [];   // não completa fase de jogador real
-  const botWins = [];   // completa fase de bot (e não de real)
-
-  for (const b of restantes) {
-    const sim = core.state.drawnBalls.concat(b);
-    let ajudaBot = false, ajudaReal = false;
-    for (const c of core.roundCards.values()) {
-      const isBot = botSet.has(c.owner);
-      const ev = game.evaluateCard(c.card, sim);
-      for (const p of fasesAbertas) {
-        if (ev[p].done) { if (isBot) ajudaBot = true; else ajudaReal = true; }
-      }
-      if (ajudaBot && ajudaReal) break;
-    }
-    if (ajudaReal) continue;          // NUNCA faz jogador real ganhar
-    if (ajudaBot) botWins.push(b);
-    else seguros.push(b);
-  }
-
-  // Prioridade: bola que faz bot ganhar (casa ganha) > bola neutra segura > aleatória.
-  const pool = botWins.length ? botWins : (seguros.length ? seguros : restantes);
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
 function sortearBolaLoop() {
   if (core.state.status !== 'running' || core.state.pausado) return;
-  const n = escolherBolaRigged();
-  if (n === null) {
-    finalizarRodada();
-    return;
-  }
-  const r = core.sortearBola(n);
+  const r = core.sortearBola();
   if (r.fim) {
     finalizarRodada();
     return;
@@ -195,11 +147,24 @@ async function restaurarRodada() {
   return true;
 }
 
+function contarCartelasReais() {
+  const botSet = new Set(bots.BOT_CPFS);
+  let n = 0;
+  for (const c of core.roundCards.values()) if (!botSet.has(c.owner)) n++;
+  return n;
+}
+
 function iniciarSorteio() {
   if (core.drawTimer) { clearTimeout(core.drawTimer); core.drawTimer = null; }
   if (core.resumeTimer) { clearTimeout(core.resumeTimer); core.resumeTimer = null; }
   if (core.intermissionTimer) { clearInterval(core.intermissionTimer); core.intermissionTimer = null; }
   core.iniciarSorteio();
+  // FINALIZA os prêmios com a RECEITA REAL desta rodada (só cartelas de jogadores reais).
+  const realCards = contarCartelasReais();
+  const receita = realCards * (core.state.cardCost || game.CARD_COST_BASE);
+  core.state.ultimoRealCards = realCards;
+  core.state.receitaRodada = +receita.toFixed(2);
+  core.state.premios = game.calcularPremios(receita);
   broadcastState();
   core.drawTimer = setTimeout(sortearBolaLoop, config.DRAW_INTERVAL);
 }
@@ -229,6 +194,8 @@ function finalizarRodada() {
       v.prize = prizePorJogador;
       pagar(v.owner, prizePorJogador);
     }
+    // Casa paga o prêmio acumulado (jackpot).
+    db.addHouse(-(premios.acumulado || 0));
     core.state.winners.acumulado = { vencedores, name: vencedores.map((v) => v.name).join(', '), prize: prizePorJogador };
     io.emit('jackpot', { prize: prizePorJogador, vencedores, balls: core.state.drawnBalls.length });
   }
@@ -288,8 +255,6 @@ function publicState() {
   const drawnSet = new Set(core.state.drawnBalls.map(Number));
   const total = core.roundCards.size;
 
-  const botSet = new Set(bots.BOT_CPFS);
-
   for (const [owner, cards] of porOwner) {
     const u = db.users.get(owner);
     let melhorFalta = 99;
@@ -299,13 +264,11 @@ function publicState() {
       if (f < melhorFalta) melhorFalta = f;
     }
     // Fases que este jogador JA fechou nesta rodada (badge fixo no painel).
-    // So mostra badge de fase ganha para bots (jogadores reais nunca ganham).
+    // Jogo justo: qualquer jogador (real ou bot) aparece como vencedor.
     const ganhou = [];
-    if (botSet.has(owner)) {
-      for (const c of validCards) {
-        for (const ph of game.PHASE_SEQUENCE) {
-          if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
-        }
+    for (const c of validCards) {
+      for (const ph of game.PHASE_SEQUENCE) {
+        if (game.evaluateCard(c.card, core.state.drawnBalls)[ph].done && !ganhou.includes(ph)) ganhou.push(ph);
       }
     }
     players.push({ id: u ? u.cpf : owner, name: u ? u.nome : owner, falta: melhorFalta, ganhou });
@@ -330,9 +293,8 @@ function publicState() {
       const fase = ev[phase];
       const faltantes = game.missingForPhase(c.card, core.state.drawnBalls, phase);
       const atual = porOwnerMap.get(c.owner);
-      // Jogadores reais nunca sao marcados como "done" (só bots ganham).
-      const isBot = botSet.has(c.owner);
-      const faseDone = fase.done && isBot;
+      // Jogo justo: qualquer jogador (real ou bot) aparece como "done" ao fechar a fase.
+      const faseDone = fase.done;
       const faltaRank = faseDone ? 0 : fase.falta;
       if (!atual || faltaRank < atual.faltaRank || (faltaRank === atual.faltaRank && c.id < atual.cardId)) {
         porOwnerMap.set(c.owner, { cardId: c.id, faltaRank, falta: fase.falta, done: faseDone, faltantes });

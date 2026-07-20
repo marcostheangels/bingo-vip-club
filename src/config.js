@@ -3,7 +3,8 @@ const crypto = require('crypto');
 // ===== Config do jogo =====
 const DRAW_INTERVAL = parseInt(process.env.DRAW_INTERVAL) || 3000; // ms entre bolas
 const INTERMISSION = parseInt(process.env.INTERMISSION) || 60000; // ms de intervalo entre rodadas (compra + contagem regressiva)
-const PRIZES = { kuadra: 20, kina: 30, keno: 100, acumulado: 1000 };
+// Fallback apenas (os prêmios reais são calculados por rodada em game.calcularPremios).
+const PRIZES = { kuadra: 1, kina: 2, keno: 5, acumulado: 5 };
 const ACUMULADO_BALLS = 35; // fecha a cartela (Keno) até essa bola para ganhar o acumulado
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(16).toString('hex');
 

@@ -16,8 +16,9 @@ function novaRodada() {
   roundCards.clear();
   sorteioSeq++;
   const cardCost = game.calcularCardCost();
-  // Estima 500 cartelas para calcular premios (ajustavel conforme base de jogadores)
-  const premios = game.calcularPremios(500, cardCost);
+  // Estimativa inicial com base nas cartelas reais da rodada anterior.
+  const estimativaReceita = (state.ultimoRealCards || 100) * cardCost;
+  const premios = game.calcularPremios(estimativaReceita);
   Object.assign(state, {
     sorteio: sorteioSeq,
     status: 'intermission',
@@ -39,18 +40,16 @@ function iniciarSorteio() {
   state.startsAt = null;
 }
 
-function sortearBola(n) {
+function sortearBola() {
   const restantes = [];
   for (let i = 1; i <= 90; i++) if (!state.drawnBalls.includes(i)) restantes.push(i);
   if (restantes.length === 0 || state.winners.keno) {
     return { fim: true };
   }
-  let ball;
-  if (typeof n === 'number' && restantes.includes(n)) ball = n;
-  else ball = restantes[Math.floor(Math.random() * restantes.length)];
-  state.drawnBalls.push(ball);
-  state.currentBall = ball;
-  return { fim: false, n: ball };
+  const n = restantes[Math.floor(Math.random() * restantes.length)];
+  state.drawnBalls.push(n);
+  state.currentBall = n;
+  return { fim: false, n };
 }
 
 function finalizarRodada() {
