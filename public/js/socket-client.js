@@ -33,6 +33,10 @@ socket.on('saldo', ({ balance, bonus, deposito, saldoJogavel }) => {
   window.__bonus = typeof bonus === 'number' ? bonus : 0;
   window.__deposito = typeof deposito === 'number' ? deposito : 0;
   window.__balance = typeof balance === 'number' ? balance : 0;
+  // Se o modal de saque estiver aberto, atualiza os valores em tempo real
+  if (document.getElementById('saqueModal')?.classList.contains('show') && typeof window.abrirSaque === 'function') {
+    window.abrirSaque(true);
+  }
 });
 
 // ===== Minhas cartelas =====
