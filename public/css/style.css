@@ -65,9 +65,8 @@ body { -webkit-user-select: text; user-select: text; }
 body {
     background: var(--bg-gradient);
     color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
+    height: 100vh;
+    overflow: hidden;
     padding: var(--padding-page);
     display: flex;
     flex-direction: column;
@@ -148,8 +147,8 @@ header {
 /* ===== LAYOUT DO CONTAINER PRINCIPAL ===== */
 .main-container {
     position: relative; z-index: 1; display: flex; gap: var(--gap-main); align-items: stretch;
-    flex: 1; min-height: 0; margin-bottom: 5px;
-    max-width: 100%; overflow-x: hidden;
+    flex: 1 1 auto; min-height: 0; height: 100%;
+    max-width: 100%; overflow: hidden;
 }
 
 /* 2. BARRA LATERAL ESQUERDA */
@@ -182,7 +181,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .acumulado-legenda { font-size: 11px; color: rgba(255,255,255,.85); text-transform: uppercase; letter-spacing: 1px; }
 
 /* AREA CENTRAL */
-.center-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 15px; }
+.center-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
 
 /* 4. PREMIOS */
 .prizes-row { display: flex; gap: 15px; flex: 0 0 auto; }
@@ -206,7 +205,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* 5. AREA DO SORTEIO CENTRALIZADO */
 .game-display {
     flex: 1 1 auto; display: flex; align-items: stretch; justify-content: flex-start; gap: 28px;
-    position: relative; padding: clamp(12px, 2vw, 20px); min-height: 260px;
+    position: relative; padding: clamp(12px, 2vw, 20px); min-height: 0; overflow: hidden;
     background: rgba(255, 255, 255, 0.02); border-radius: 16px;
 }
 .game-left {
@@ -364,7 +363,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
     background: linear-gradient(160deg, rgba(20, 28, 66, .75), rgba(8, 12, 38, .75));
     border-radius: 16px; padding: 12px; flex: 1 1 auto; min-width: 0; align-self: stretch;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    overflow: hidden; display: flex; flex-direction: column; gap: 6px; min-height: 240px;
+    overflow: auto; display: flex; flex-direction: column; gap: 6px; min-height: 0;
 }
 .balls-board-title {
     font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--yellow);
@@ -390,7 +389,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 /* ===== 7. PAINEL DIREITO COM ROLAGEM ISOLADA ===== */
 .right-panel {
     width: 440px; max-width: 100%; flex: 0 0 440px; display: flex; flex-direction: column; gap: 12px;
-    min-height: 0;
+    min-height: 0; overflow-y: auto;
 }
 .right-panel::-webkit-scrollbar { display: none; }
 .right-panel { -ms-overflow-style: none; scrollbar-width: none; }
@@ -482,7 +481,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .my-cards {
     background: var(--panel-bg); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 12px;
     display: flex; flex-direction: column; flex: 0 0 340px; min-width: 300px; max-width: 42%;
-    align-self: stretch; min-height: 240px; max-height: 100%;
+    align-self: stretch; min-height: 0; max-height: 100%; overflow: hidden;
 }
 .my-cards-title { font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .zoom-ctrl { display: flex; gap: 5px; }
