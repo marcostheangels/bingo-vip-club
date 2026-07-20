@@ -210,7 +210,7 @@ app.post('/api/admin/user', requireAdmin, async (req, res) => {
 });
 
 // Lista pedidos de saque (admin)
-app.get('/api/admin/saques', (req, res) => {
+app.get('/api/admin/saques', async (req, res) => {
   const { sessionToken, cpf } = req.query;
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
   const tokenKey = sessionToken && db.sessions.get(sessionToken);
@@ -218,7 +218,7 @@ app.get('/api/admin/saques', (req, res) => {
   if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
     return res.status(403).json({ error: 'Acesso negado.' });
   }
-  res.json({ saques: db.listSaques() });
+  res.json({ saques: await db.listSaques() });
 });
 
 // Resolve pedido de saque: aprovar (já debitado) ou recusar (estorna)
@@ -446,7 +446,7 @@ app.post('/api/webhook/infinitepay', async (req, res) => {
 
 // ===== Saque (jogador solicita) =====
 // Autentica pela sessão e debita o saldo como "reservado" (status pendente).
-app.post('/api/saque', (req, res) => {
+app.post('/api/saque', async (req, res) => {
   const { sessionToken, cpf, valor, pix } = req.body || {};
   const cpfLimpo = String(cpf || '').replace(/\D/g, '');
   const tokenKey = sessionToken && db.sessions.get(sessionToken);
@@ -463,7 +463,7 @@ app.post('/api/saque', (req, res) => {
   u.balance = +(u.balance - v).toFixed(2);
   db.markDirty(cpfLimpo);
   db.saveUsers();
-  const pedido = db.addSaque({
+  const pedido = await db.addSaque({
     id: 'S' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
     cpf: cpfLimpo,
     nome: u.nome,
