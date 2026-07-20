@@ -742,27 +742,30 @@ body.editor-active [contenteditable="true"]:hover {
     .badge-acumulado { width: 22px; height: 22px; font-size: 9px; top: -7px; right: -5px; }
     .ac-status { font-size: 9px; }
 
-    /* — DISPLAY DO JOGO — bola + bolas lado a lado */
-    .game-display { gap: 4px; padding: 4px; flex-direction: row; align-items: center; overflow: hidden; flex-shrink: 0; }
+    /* — SORTEIO + CARTELAS — lado a lado 50/50 */
+    .sorteio-cartelas { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; min-height: 0; }
+
+    /* — DISPLAY DO JOGO — bola + bolas */
+    .game-display { flex: 1 1 50%; gap: 3px; padding: 4px; flex-direction: column; align-items: center; overflow: hidden; min-width: 0; }
     .game-left { gap: 4px; justify-content: center; }
     .main-ball { width: var(--ball-size); height: var(--ball-size); font-size: var(--ball-font); }
     .hora-center { display: none; }
-    .phase-panel { padding: 4px 8px; }
+    .phase-panel { padding: 2px 6px; }
     .phase-eyebrow, .phase-sub, .phase-stats, .phase-progress { display: none; }
-    .phase-name { font-size: var(--phase-name-font); margin: 0; }
-    .phase-prize { font-size: .85em; padding: 3px 10px; }
+    .phase-name { font-size: calc(var(--phase-name-font) * .85); margin: 0; }
+    .phase-prize { font-size: .75em; padding: 2px 8px; }
 
-    /* — BOLAS SORTEADAS — grid compacto */
-    .balls-board { flex: 1; min-height: 0; padding: 6px; max-height: 140px; }
-    .balls-board-title { font-size: 10px; }
+    /* — BOLAS SORTEADAS */
+    .balls-board { flex: 1; min-height: 0; padding: 4px; max-height: none; }
+    .balls-board-title { font-size: 9px; }
     .balls-grid { gap: 1px; }
-    .grid-cell { font-size: 9px; border-radius: 4px; min-width: 0; min-height: 0; }
+    .grid-cell { font-size: 8px; border-radius: 3px; min-width: 0; min-height: 0; }
 
-    /* — MINHAS CARTELAS — visiveis abaixo do jogo */
-    .my-cards { display: flex; flex-direction: column; flex-shrink: 0; padding: 6px; background: transparent; border: none; border-radius: 0; min-width: 0; max-width: none; max-height: 22vh; overflow: hidden; }
-    .my-cards-title { font-size: 11px; margin-bottom: 4px; }
+    /* — MINHAS CARTELAS — lado direito do sorteio */
+    .my-cards { display: flex; flex-direction: column; flex: 1 1 50%; padding: 6px; background: transparent; border: none; border-radius: 0; min-width: 0; max-width: none; max-height: none; overflow: hidden; }
+    .my-cards-title { font-size: 10px; margin-bottom: 4px; }
     .my-cards-scroll { overflow-y: auto; flex: 1; min-height: 0; }
-    .my-cards-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+    .my-cards-grid { grid-template-columns: 1fr; gap: 4px; }
     .btn-mobile-toggle { display: none !important; }
     .ordem-row { display: none; }
 

@@ -183,9 +183,16 @@
     const myCards = document.getElementById('myCards');
     const rightPanel = document.querySelector('.right-panel');
     const centerContent = document.querySelector('.center-content');
-    if (myCards && rightPanel && centerContent) {
+    const gameDisplay = document.querySelector('.game-display');
+    if (myCards && rightPanel && centerContent && gameDisplay) {
       if (!centerContent.contains(myCards)) centerContent.appendChild(myCards);
       if (!centerContent.contains(rightPanel)) centerContent.appendChild(rightPanel);
+      // Envolve game-display + my-cards em .sorteio-cartelas (50/50)
+      const wrapper = document.createElement('div');
+      wrapper.className = 'sorteio-cartelas';
+      gameDisplay.parentNode.insertBefore(wrapper, gameDisplay);
+      wrapper.appendChild(gameDisplay);
+      wrapper.appendChild(myCards);
     }
   }
 })();
