@@ -148,7 +148,7 @@ header {
 /* ===== LAYOUT DO CONTAINER PRINCIPAL ===== */
 .main-container {
     position: relative; z-index: 1; display: flex; gap: var(--gap-main); align-items: stretch;
-    flex: 1; min-height: 0; margin-bottom: 84px;
+    flex: 1; min-height: 0; margin-bottom: 5px;
     max-width: 100%; overflow-x: hidden;
 }
 
@@ -252,16 +252,6 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 }
 @keyframes cdPulse { 50% { transform: scale(1.08); } }
 .countdown-hint { font-size: 14px; font-weight: 600; color: var(--neon-2); text-shadow: 0 0 10px rgba(34,211,238,.4); }
-.cd-info-cards {
-  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
-  margin-top: 16px; max-width: 520px;
-}
-.cd-ic {
-  display: flex; align-items: center; gap: 8px;
-  background: linear-gradient(145deg, rgba(34,211,238,0.14), rgba(139,92,255,0.14));
-  border: 1px solid rgba(255,255,255,0.16); border-radius: 12px;
-  padding: 9px 13px; box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-}
 .cd-ic-ico { font-size: 18px; filter: drop-shadow(0 0 6px rgba(34,211,238,0.5)); }
 .cd-ic div { display: flex; flex-direction: column; line-height: 1.1; }
 .cd-ic small { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: .3px; }
@@ -832,66 +822,4 @@ body.editor-active [contenteditable="true"]:hover {
 .aviso-flutuante.info { background: linear-gradient(145deg, #6366f1, #4f46e5); }
 .aviso-flutuante.erro { background: linear-gradient(145deg, #dc2626, #b91c1c); }
 .de-pix .pix-qr-img { width: 200px; height: 200px; margin: 0 auto 12px; background: #fff; border-radius: 14px; padding: 10px; display: block; }
-
-/* ===== Cards informativos (transparência) ===== */
-.info-cards {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 60;
-  overflow: hidden;
-  white-space: nowrap;
-  background: linear-gradient(180deg, rgba(4,4,30,0.0), rgba(4,4,30,0.85) 35%);
-  border-top: 1px solid rgba(255,255,255,0.10);
-  padding: 10px 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
-.ticker-track {
-  display: inline-flex;
-  gap: 12px;
-  padding: 0 6px;
-  animation: tickerScroll 38s linear infinite;
-}
-.info-cards:hover .ticker-track { animation-play-state: paused; }
-@keyframes tickerScroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-.info-card-item {
-  display: inline-flex;
-  gap: 12px;
-  align-items: flex-start;
-  flex: 0 0 auto;
-  white-space: normal;
-  width: 280px;
-  background: linear-gradient(145deg, rgba(34,211,238,0.12), rgba(139,92,255,0.12));
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-}
-.info-ico {
-  font-size: 24px;
-  line-height: 1;
-  flex: 0 0 auto;
-  filter: drop-shadow(0 0 8px rgba(34,211,238,0.5));
-}
-.info-body strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 3px;
-  text-shadow: 0 0 10px rgba(34,211,238,0.25);
-}
-.info-body p {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: rgba(255,255,255,0.8);
-}
-.info-body p b { color: #ffd700; font-weight: 700; }
-
-/* ===== Cards informativos da rodada (dentro do overlay de contagem) ===== */
-.round-info-cards { display: none; }
 

@@ -111,16 +111,6 @@ function renderState(s) {
   setTxt('prizeKeno', brlCompact(s.prizes.keno));
   setTxt('prizeAcumulado', brlCompact(s.prizes.acumulado));
 
-  // Cards informativos da rodada (compra de cartelas)
-  setTxt('ricKuadra', brlCompact(s.prizes.kuadra));
-  setTxt('ricKina', brlCompact(s.prizes.kina));
-  setTxt('ricKeno', brlCompact(s.prizes.keno));
-  setTxt('ricAcum', brlCompact(s.prizes.acumulado));
-  setTxt('ricCountdown', (s.status === 'intermission' && s.startsAt) ? Math.max(0, Math.ceil((s.startsAt - Date.now()) / 1000)) + 's' : '—');
-  setTxt('cdKuadra', brlCompact(s.prizes.kuadra));
-  setTxt('cdKina', brlCompact(s.prizes.kina));
-  setTxt('cdKeno', brlCompact(s.prizes.keno));
-  setTxt('cdAcum', brlCompact(s.prizes.acumulado));
 
   // Acumulado: meta de fechar a cartela até a bola N
   setTxt('acBadge', s.acumuladoBalls);
@@ -183,8 +173,6 @@ function renderState(s) {
   // por jogador, a cartela mais próxima), em ordem crescente de quem falta menos
   // bolas para fechar a FASE ATUAL (Kuadra/Kina/Keno). Mostra: nº da cartela,
   // nome e os números que faltam.
-  // Só exibe os jogadores quando a partida está em andamento (running). Antes de
-  // iniciar (intermission) ou encerrada (finished), mostra aviso em vez da lista.
   try {
     if (playersContainer) playersContainer.innerHTML = '';
     const faseAtual = PHASE_SEQUENCE[s.phaseIndex] || 'kuadra';
@@ -215,7 +203,6 @@ function renderState(s) {
         } else {
           balls = faltantes.map((n) => `<span class="pballmini" title="${n}">${n}</span>`).join('');
         }
-        // Badges de fases ja ganhas por este jogador (fixos no nome).
         const ganhou = (window.__playersGanhou && window.__playersGanhou[item.owner]) || [];
         const badgesGanhou = ganhou.map((ph) => `<span class="fase-badge-won sm f-${ph}" title="Fez ${NOME[ph]}">✓ ${NOME[ph].toUpperCase()}</span>`).join(' ');
         const row = document.createElement('div');
@@ -300,8 +287,6 @@ function updateCountdown() {
     timeEl.classList.toggle('urgent', secs <= 10);
   }
   if (badge) badge.textContent = `ABERTO • ${secs}s`;
-  setTxt('ricCountdown', secs + 's');
-  setTxt('cdCountdown', secs + 's');
 }
 setInterval(updateCountdown, 250);
 console.log('[bingo] ui.js carregado — CLIENT_VER=' + (window.CLIENT_VER || '?'));
