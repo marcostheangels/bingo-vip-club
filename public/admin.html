@@ -86,6 +86,7 @@
   <div class="nav-btn" data-tab="usuarios" onclick="trocar('usuarios')"><span class="material-icons">group</span>Jogadores</div>
   <div class="nav-btn" data-tab="saques" onclick="trocar('saques')"><span class="material-icons">payments</span>Saques</div>
   <div class="nav-btn" data-tab="depositos" onclick="trocar('depositos')"><span class="material-icons">account_balance_wallet</span>Depósitos</div>
+  <div class="nav-btn" data-tab="historico" onclick="trocar('historico')"><span class="material-icons">history</span>Histórico</div>
   <div class="side-foot">
     <a class="nav-btn" href="/?edit=1"><span class="material-icons">edit</span>Editar Jogo</a>
     <button class="ghost" onclick="logout()"><span class="material-icons">logout</span>Sair</button>
@@ -156,6 +157,17 @@
       </table>
     </div>
     <div class="msg" id="depositoMsg"></div>
+  </section>
+  <!-- HISTORICO -->
+  <section class="card" id="tab-historico">
+    <h2><span class="material-icons">history</span> Histórico de Rodadas (Conferência)</h2>
+    <div style="overflow:auto">
+      <table id="historicoTable">
+        <thead><tr><th>Sorteio</th><th>Fase</th><th>Prêmio</th><th>Ganhador(es)</th><th>Cartela(s)</th><th>Valor p/ ganhador</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="msg" id="historicoMsg"></div>
   </section>
 </main>
 
@@ -300,6 +312,24 @@
     catch(e){ m.className='msg'; m.textContent=e.message; }
   }
 
+  async function carregarHistorico(){
+    try{
+      const d = await api('/api/admin/historico?sessionToken='+encodeURIComponent(token)+'&cpf='+encodeURIComponent(cpf),'GET');
+      const tb = document.querySelector('#historicoTable tbody');
+      tb.innerHTML='';
+      if(!d.historico.length){ tb.innerHTML='<tr><td colspan="6" style="color:var(--muted)">Nenhuma rodada registrada ainda.</td></tr>'; return; }
+      d.historico.forEach(h=>{
+        const faseNome = (h.fase||'').toUpperCase();
+        const ganhadores = (h.vencedores||[]).map(v=>v.name).join(', ') || '—';
+        const cartelas = (h.vencedores||[]).map(v=>(v.cardIds||[]).join(',')).join(' · ') || '—';
+        const valores = (h.vencedores||[]).map(v=>brl(v.prize)).join(', ') || '—';
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td><b>#${h.sorteio}</b></td><td><span class="pill ${h.fase}">${faseNome}</span></td><td>${brl(h.prize)}</td><td>${ganhadores}</td><td>${cartelas}</td><td>${valores}</td>`;
+        tb.appendChild(tr);
+      });
+    }catch(e){}
+  }
+
   async function acaoRodada(a){
     const m=document.getElementById('rodadaMsg');
     try{ await api('/api/admin/round','POST',{sessionToken:token,cpf,action:a}); m.className='msg ok'; m.textContent='OK: '+a; await carregar(); }
@@ -337,6 +367,7 @@
   carregar();
   setInterval(()=>{ if(document.getElementById('tab-visao').classList.contains('active')||document.getElementById('tab-usuarios').classList.contains('active')) carregar(); }, 6000);
   setInterval(()=>{ if(document.getElementById('tab-depositos').classList.contains('active')) carregarDepositos(); }, 5000);
+  setInterval(()=>{ if(document.getElementById('tab-historico').classList.contains('active')) carregarHistorico(); }, 5000);
 </script>
 </body>
 </html>

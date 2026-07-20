@@ -58,6 +58,15 @@ function checarVencedores() {
     };
     io.emit('winner', { phase, prize: config.PRIZES[phase], vencedores });
 
+    // Registra no histórico de rodadas para conferência no painel admin.
+    db.addHistorico({
+      id: 'H' + core.state.sorteio + '_' + phase + '_' + Date.now().toString(36),
+      sorteio: core.state.sorteio,
+      fase: phase,
+      prize: config.PRIZES[phase],
+      vencedores: vencedores.map((v) => ({ name: v.name, owner: v.owner, cardIds: v.cardIds, prize: v.prize })),
+      createdAt: Date.now(),
+    });
     // PARA IMEDIATAMENTE o sorteio ao fechar uma fase: nenhuma bola extra é
     // sorteada até o overlay de vitória fechar. A próxima fase só recomeça
     // após o tempo de comemoração.

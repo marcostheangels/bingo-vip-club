@@ -260,6 +260,18 @@ app.get('/api/admin/depositos', async (req, res) => {
   res.json({ depositos: await db.listDepositos() });
 });
 
+// Lista histórico de rodadas (admin) — conferência de ganhadores por sorteio
+app.get('/api/admin/historico', async (req, res) => {
+  const { sessionToken, cpf } = req.query;
+  const cpfLimpo = String(cpf || '').replace(/\D/g, '');
+  const tokenKey = sessionToken && db.sessions.get(sessionToken);
+  const u = cpfLimpo && db.users.get(cpfLimpo);
+  if (!u || tokenKey !== cpfLimpo || u.sessionToken !== sessionToken || !u.admin) {
+    return res.status(403).json({ error: 'Acesso negado.' });
+  }
+  res.json({ historico: await db.listHistorico() });
+});
+
 // Resolve pedido de depósito: aprovar (credita saldo) ou recusar (não credita)
 app.post('/api/admin/deposito', requireAdmin, async (req, res) => {
   const { id, status } = req.body || {};

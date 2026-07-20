@@ -10,6 +10,7 @@ const users = new Map();        // cpf -> { cpf, nome, email, chavePix, password
 const sessions = new Map();     // token -> cpf
 const saques = [];              // pedidos de saque: { id, cpf, nome, valor, pix, status, createdAt }
 const depositos = [];           // pedidos de depósito PIX: { id, cpf, nome, valor, pix, status, createdAt }
+const historico = [];           // histórico de rodadas: { id, sorteio, fase, prize, vencedores:[{name,owner,cardIds,prize}], createdAt }
 const config = require('./config');
 
 const USERS_FILE = path.join(__dirname, '..', 'users.json');
@@ -94,6 +95,17 @@ async function initDB() {
       }
       console.log('[db] PostgreSQL conectado. usuarios carregados:', users.size);
 
+      // Tabela de histórico de rodadas (conferencia de ganhadores por sorteio).
+      await pgPool.query(`
+        CREATE TABLE IF NOT EXISTS historico (
+          id TEXT PRIMARY KEY,
+          sorteio INTEGER,
+          fase TEXT,
+          prize NUMERIC,
+          vencedores JSONB,
+          created_at BIGINT
+        );
+      `);
       // Carrega pedidos de depósito para o cache em memória.
       try {
         const depRows = await pgPool.query('SELECT * FROM depositos ORDER BY created_at DESC');
@@ -111,6 +123,19 @@ async function initDB() {
           saques.push({ id: x.id, cpf: x.cpf, nome: x.nome, valor: Number(x.valor), pix: x.pix, status: x.status, createdAt: Number(x.created_at) });
         }
       } catch (e) { console.error('[db] erro carregar saques:', e.message); }
+
+      // Carrega histórico de rodadas para o cache em memória.
+      try {
+        const histRows = await pgPool.query('SELECT * FROM historico ORDER BY created_at DESC');
+        historico.length = 0;
+        for (const x of histRows.rows) {
+          historico.push({
+            id: x.id, sorteio: Number(x.sorteio), fase: x.fase, prize: Number(x.prize),
+            vencedores: (typeof x.vencedores === 'string' ? JSON.parse(x.vencedores) : x.vencedores) || [],
+            createdAt: Number(x.created_at)
+          });
+        }
+      } catch (e) { console.error('[db] erro carregar historico:', e.message); }
     } catch (e) {
       console.error('[db] Falha ao conectar PostgreSQL, usando users.json:', e.message);
       pgPool = null;
@@ -222,6 +247,36 @@ async function updateSaque(id, status) {
     catch (e) { console.error('[db] erro updateSaque:', e.message); }
   }
   return s;
+}
+
+// ===== Histórico de rodadas (conferencia de ganhadores por sorteio) =====
+async function addHistorico(registro) {
+  historico.unshift(registro);
+  if (pgPool) {
+    try {
+      await pgPool.query(
+        `INSERT INTO historico (id, sorteio, fase, prize, vencedores, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6)
+         ON CONFLICT (id) DO NOTHING`,
+        [registro.id, registro.sorteio, registro.fase, registro.prize, JSON.stringify(registro.vencedores), registro.createdAt]
+      );
+    } catch (e) { console.error('[db] erro historico PG:', e.message); }
+  }
+  return registro;
+}
+
+async function listHistorico() {
+  if (pgPool) {
+    try {
+      const r = await pgPool.query('SELECT * FROM historico ORDER BY created_at DESC');
+      return r.rows.map((x) => ({
+        id: x.id, sorteio: Number(x.sorteio), fase: x.fase, prize: Number(x.prize),
+        vencedores: (typeof x.vencedores === 'string' ? JSON.parse(x.vencedores) : x.vencedores) || [],
+        createdAt: Number(x.created_at)
+      }));
+    } catch (e) { console.error('[db] erro listHistorico:', e.message); }
+  }
+  return historico.slice();
 }
 
 // ===== Pedidos de depósito (PIX pago, aguarda aprovação do admin) =====
@@ -417,6 +472,8 @@ module.exports = {
   addSaque,
   listSaques,
   updateSaque,
+  addHistorico,
+  listHistorico,
   addDeposito,
   listDepositos,
   updateDeposito,
