@@ -256,7 +256,7 @@
         const tr=document.createElement('tr');
         tr.innerHTML = `<td>${u.cpf}${u.admin?'<span class="badge">ADM</span>':''}</td><td>${u.nome}</td>`+
           `<td class="saldo-cell"><b>${brl(u.balance)}</b></td><td class="saldo-cell"><span class="dep">${brl(u.deposito)}</span></td><td class="saldo-cell"><span class="bon">${brl(u.bonus)}</span></td>`+
-          `<td><button class="ghost" onclick="abrirModal('${u.cpf}','${(u.nome||'').replace(/'/g,"")}',${u.balance},${u.deposito},${u.bonus})">Ajustar</button></td>`;
+          `<td><button class="ghost" onclick="abrirModal('${u.cpf}','${(u.nome||'').replace(/'/g,"")}',${u.balance},${u.deposito},${u.bonus})">Ajustar</button> <button class="danger" onclick="excluirJogador('${u.cpf}')">Excluir</button></td>`;
         tb.appendChild(tr);
       });
       await carregarSaques();
@@ -362,6 +362,14 @@
       await api('/api/admin/user','POST',{sessionToken:token,cpf,cpfAlvo:modalCpf,field:campoField,op:campoOp,amount:val});
       m.className='msg ok'; m.textContent='Aplicado!'; await carregar(); setTimeout(fecharModal,900);
     }catch(e){ m.className='msg'; m.textContent=e.message; }
+  }
+
+  async function excluirJogador(cpfAlvo){
+    if(!confirm('Excluir o jogador '+cpfAlvo+' completamente do sistema?\nEle poderá se cadastrar novamente depois.')) return;
+    try{
+      await api('/api/admin/delete-user','POST',{sessionToken:token,cpf,cpfAlvo});
+      await carregar();
+    }catch(e){ alert('Erro ao excluir: '+e.message); }
   }
 
   carregar();

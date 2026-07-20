@@ -39,16 +39,18 @@ function iniciarSorteio() {
   state.startsAt = null;
 }
 
-function sortearBola() {
+function sortearBola(n) {
   const restantes = [];
   for (let i = 1; i <= 90; i++) if (!state.drawnBalls.includes(i)) restantes.push(i);
   if (restantes.length === 0 || state.winners.keno) {
     return { fim: true };
   }
-  const n = restantes[Math.floor(Math.random() * restantes.length)];
-  state.drawnBalls.push(n);
-  state.currentBall = n;
-  return { fim: false, n };
+  let ball;
+  if (typeof n === 'number' && restantes.includes(n)) ball = n;
+  else ball = restantes[Math.floor(Math.random() * restantes.length)];
+  state.drawnBalls.push(ball);
+  state.currentBall = ball;
+  return { fim: false, n: ball };
 }
 
 function finalizarRodada() {

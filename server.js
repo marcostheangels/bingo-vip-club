@@ -210,6 +210,22 @@ app.post('/api/admin/user', requireAdmin, async (req, res) => {
   res.json({ ok: true, user: { cpf: u.cpf, nome: u.nome, balance: u.balance, bonus: u.bonus, deposito: u.deposito } });
 });
 
+// Exclui um jogador completamente do sistema (admin). Após excluir, ele pode
+// se cadastrar novamente (registro não encontra CPF/e-mail).
+app.post('/api/admin/delete-user', requireAdmin, async (req, res) => {
+  const cpfAlvo = req.body.cpfAlvo || req.body.cpf;
+  const cpfLimpo = String(cpfAlvo || '').replace(/\D/g, '');
+  if (!cpfLimpo) return res.status(400).json({ error: 'CPF inválido.' });
+  const u = db.users.get(cpfLimpo);
+  if (!u) return res.status(404).json({ error: 'usuário não encontrado.' });
+  if (u.admin) return res.status(400).json({ error: 'Não é possível excluir um administrador.' });
+  // Remove cartelas da rodada atual (se o jogador estiver jogando).
+  for (const [id, c] of core.roundCards.entries()) if (c.owner === cpfLimpo) core.roundCards.delete(id);
+  await db.deleteUser(cpfLimpo);
+  if (typeof round.broadcastState === 'function') round.broadcastState();
+  res.json({ ok: true });
+});
+
 // Lista pedidos de saque (admin)
 app.get('/api/admin/saques', async (req, res) => {
   const { sessionToken, cpf } = req.query;

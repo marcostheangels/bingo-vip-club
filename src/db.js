@@ -420,6 +420,23 @@ function ensureUser(cpf, dados) {
   return users.get(key);
 }
 
+// Remove o jogador completamente do sistema (memória + banco). Após isso ele
+// pode se cadastrar novamente (o registro não encontra o CPF/e-mail).
+async function deleteUser(cpf) {
+  const key = String(cpf).replace(/\D/g, '');
+  users.delete(key);
+  // Remove sessões ativas do jogador.
+  for (const [token, c] of sessions.entries()) if (c === key) sessions.delete(token);
+  if (pgPool) {
+    try { await pgPool.query('DELETE FROM users WHERE cpf=$1', [key]); } catch (e) { console.error('[db] erro deleteUser PG:', e.message); }
+    try { await pgPool.query('DELETE FROM saques WHERE cpf=$1', [key]); } catch (e) { console.error('[db] erro deleteUser saques:', e.message); }
+    try { await pgPool.query('DELETE FROM depositos WHERE cpf=$1', [key]); } catch (e) { console.error('[db] erro deleteUser depositos:', e.message); }
+  } else {
+    saveUsersFile();
+  }
+  return true;
+}
+
 
 // Tenta debitar 'valor' para jogar, na ordem: balance (sacavel) -> deposito -> bonus.
 // Retorna true se debitou (e ajusta os campos), false se insuficiente (reverte).
@@ -465,6 +482,7 @@ module.exports = {
   newToken,
   validarCPF,
   ensureUser,
+  deleteUser,
   debitarParaJogar,
   saldoJogavel,
   markDirty,

