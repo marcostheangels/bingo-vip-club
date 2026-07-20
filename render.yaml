@@ -11,7 +11,7 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: DRAW_INTERVAL
-        value: 3000
+        value: 2000
       - key: INTERMISSION
         value: 60000
       - key: BOTS
