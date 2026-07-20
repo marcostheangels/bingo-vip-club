@@ -453,6 +453,7 @@ aside { display: flex; flex-direction: column; align-items: center; gap: 22px; w
 .buy-badge { display: none; margin-left: 8px; font-size: 11px; font-weight: 800; color: #000; background: var(--yellow); border-radius: 20px; padding: 2px 10px; }
 .buy-panel.buyable .buy-badge { display: inline-block; }
 .buy-title { font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 8px; }
+.buy-cart-count { display: inline-flex; align-items: center; justify-content: center; margin-left: 6px; background: var(--neon-2); color: #000; font-size: 10px; font-weight: 800; min-width: 20px; height: 18px; border-radius: 10px; padding: 0 6px; vertical-align: middle; }
 .qty-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .qbtn {
     background: linear-gradient(160deg, #2a356f, #161c44); color: #fff; border: 1px solid rgba(255, 255, 255, 0.12);
@@ -825,6 +826,7 @@ body.editor-active [contenteditable="true"]:hover {
     /* Buy panel */
     .buy-panel { padding: 6px; }
     .buy-title { font-size: 10px; margin-bottom: 4px; }
+    .buy-cart-count { font-size: 8px; min-width: 16px; height: 14px; padding: 0 4px; }
     .buy-badge { font-size: 8px; padding: 1px 6px; }
     .qty-row { gap: 2px; margin-bottom: 4px; }
     .qbtn { padding: 3px 4px; font-size: 8px; min-width: 22px; border-radius: 4px; }

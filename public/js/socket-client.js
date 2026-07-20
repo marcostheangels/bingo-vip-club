@@ -35,7 +35,7 @@ socket.on('saldo', ({ balance, saldoJogavel }) => {
 // ===== Minhas cartelas =====
 socket.on('myCards', (cards) => {
   window.setMyCards(cards);
-  setTxt('cartCount', cards.length);
+  setTxt('cartCountBuy', cards.length);
   window.renderMyCards();
 });
 

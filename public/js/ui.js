@@ -104,7 +104,7 @@ function renderState(s) {
   setTxt('sorteioId', '#' + s.sorteio);
   setTxt('doacaoVal', brl(s.cardCost));
   setTxt('drawnCount', s.drawnBalls.length);
-  setTxt('cartCount', window.getMyCards().length);
+  setTxt('cartCountBuy', window.getMyCards().length);
 
   setTxt('prizeKuadra', brlCompact(s.prizes.kuadra));
   setTxt('prizeKina', brlCompact(s.prizes.kina));

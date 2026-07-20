@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "agent": {
+    "revisor-bingo": {
+      "description": "Revisa código do Bingo VIP Club buscando bugs e más práticas."
+    },
+    "debug-bingo": {
+      "description": "Diagnostica e corrige bugs de runtime do jogo de bingo."
+    },
+    "admin-bingo": {
+      "description": "Implementa e ajusta o painel administrativo e saques."
+    }
+  }
+}
