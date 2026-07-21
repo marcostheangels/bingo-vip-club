@@ -1,0 +1,35 @@
+=====================================================
+  FAZER PUSH E COMMIT
+  Data: 20/07/2026  |  Horario: 16h06
+=====================================================
+
+PRONTO PARA PUSH — basta rodar o push quando quiser.
+
+Commit ja salvo localmente:
+  hash : 18b8bd2
+  msg  : feat: premios proporcionais a receita real + balanco da casa (lucro 20% garantido)
+
+O que foi alterado (9 arquivos, +99/-91):
+  - src/game.js      : calcularPremios agora baseia premios na receita real
+                       (cartelas de jogadores reais x custo) com teto de 80%.
+                       Casa sempre retem 20%. Sem receita => premio 0.
+  - src/game-core.js : estimativa de premios usa cartelas reais da rodada anterior
+  - src/round.js     : iniciarSorteio finaliza premios com receita real;
+                       contarCartelasReais(); addHouse nos pagamentos (fase + acumulado)
+  - src/db.js        : tabela 'meta' (PG) / meta.json = balanco da casa persistente;
+                       getHouse() / addHouse()
+  - src/socket.js    : addHouse(+custo) na compra de cartela
+  - server.js        : /api/admin/users retorna 'house'
+  - public/admin.html: exibe "Lucro da casa" no painel admin
+  - src/config.js    : fallback PRIZES reduzido (1/2/5/5)
+  - .gitignore       : adicionado meta.json
+
+Como fazer o push:
+  git push origin master
+
+Resumo do negocio:
+  Premios = 80% da receita das cartelas reais. Distribuicao do teto:
+  keno 45%, kina 28%, kuadra 17%, acumulado 10%.
+  Casa lucra 20% da receita por rodada, acumulado em 'Lucro da casa'.
+  Nunca fica negativo => nao precisa de dinheiro proprio.
+=====================================================
