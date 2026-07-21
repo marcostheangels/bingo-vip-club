@@ -1,0 +1,20 @@
+name: bingo-vip-club
+region: was
+services:
+  - name: web
+    type: web
+    instance_type: nano
+    build_command: npm install
+    run_command: npm start
+    ports:
+      - port: 3000
+        protocol: http
+    env:
+      - key: NODE_VERSION
+        value: "22"
+      - key: BOTS
+        value: "0"
+      - key: DRAW_INTERVAL
+        value: "3000"
+      - key: INTERMISSION
+        value: "60000"
