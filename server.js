@@ -552,14 +552,87 @@ if (process.env.TEST) {
   });
 }
 
-// ===== Rota temporária para importar dados do Render =====
+// ===== Rota temporária para importar dados do Render DB direto pro Northflank =====
 app.post('/api/_migrate_render', async (req, res) => {
   try {
     const { secret } = req.body || {};
     if (secret !== process.env.MIGRATE_SECRET) return res.status(401).json({ error: 'unauthorized' });
-    const m = require('./scripts/migrate');
-    const result = await m.importFromDump();
-    res.json(result);
+
+    const { Pool } = require('pg');
+    const RENDER_DB = process.env.RENDER_DB;
+    if (!RENDER_DB) return res.status(400).json({ error: 'RENDER_DB not set' });
+
+    const src = new Pool({ connectionString: RENDER_DB, ssl: { rejectUnauthorized: false } });
+    const dst = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+
+    // Cria tabelas
+    await dst.query(`CREATE TABLE IF NOT EXISTS users (
+      cpf TEXT PRIMARY KEY, nome TEXT, email TEXT, chave_pix TEXT,
+      password TEXT, balance NUMERIC DEFAULT 10, session_token TEXT,
+      admin BOOLEAN DEFAULT FALSE, bonus NUMERIC DEFAULT 0, deposito NUMERIC DEFAULT 0
+    )`);
+    await dst.query(`CREATE TABLE IF NOT EXISTS saques (
+      id TEXT PRIMARY KEY, cpf TEXT, nome TEXT, valor NUMERIC, pix TEXT,
+      status TEXT, created_at BIGINT
+    )`);
+    await dst.query(`CREATE TABLE IF NOT EXISTS depositos (
+      id TEXT PRIMARY KEY, cpf TEXT, nome TEXT, valor NUMERIC, pix TEXT,
+      status TEXT, order_nsu TEXT, created_at BIGINT
+    )`);
+    await dst.query(`CREATE TABLE IF NOT EXISTS historico (
+      id TEXT PRIMARY KEY, sorteio INTEGER, fase TEXT, prize NUMERIC,
+      vencedores JSONB, created_at BIGINT
+    )`);
+    await dst.query(`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value NUMERIC)`);
+
+    // Importa usuarios
+    const users = await src.query('SELECT * FROM users');
+    for (const u of users.rows) {
+      await dst.query(
+        `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin, bonus, deposito)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (cpf) DO NOTHING`,
+        [u.cpf, u.nome, u.email, u.chave_pix, u.password, u.balance, u.session_token,
+         !!u.admin, Number(u.bonus||0), Number(u.deposito||0)]
+      );
+    }
+
+    // Importa saques
+    const saques = await src.query('SELECT * FROM saques');
+    for (const s of saques.rows) {
+      await dst.query(
+        `INSERT INTO saques (id, cpf, nome, valor, pix, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO NOTHING`,
+        [s.id, s.cpf, s.nome, s.valor, s.pix, s.status, s.created_at]
+      );
+    }
+
+    // Importa depositos
+    const depositos = await src.query('SELECT * FROM depositos');
+    for (const d of depositos.rows) {
+      await dst.query(
+        `INSERT INTO depositos (id, cpf, nome, valor, pix, status, order_nsu, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (id) DO NOTHING`,
+        [d.id, d.cpf, d.nome, d.valor, d.pix, d.status, d.order_nsu, d.created_at]
+      );
+    }
+
+    // Importa historico
+    const historico = await src.query('SELECT * FROM historico');
+    for (const h of historico.rows) {
+      await dst.query(
+        `INSERT INTO historico (id, sorteio, fase, prize, vencedores, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING`,
+        [h.id, h.sorteio, h.fase, h.prize, JSON.stringify(h.vencedores || []), h.created_at]
+      );
+    }
+
+    // House balance
+    try {
+      const meta = await src.query("SELECT * FROM meta WHERE key='house'");
+      if (meta.rows[0] && Number(meta.rows[0].value) > 0) {
+        await dst.query(`INSERT INTO meta (key, value) VALUES ('house', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, [meta.rows[0].value]);
+      }
+    } catch(e) {}
+
+    src.end(); dst.end();
+    res.json({ ok: true, users: users.rows.length, saques: saques.rows.length, historico: historico.rows.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
