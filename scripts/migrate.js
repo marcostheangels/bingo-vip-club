@@ -1,72 +1,75 @@
-// Migra os usuários do users.json para o PostgreSQL.
-// Uso: node scripts/migrate.js
-// Só insere quem ainda não existir (não sobrescreve usuários já cadastrados no PG).
-require('dotenv').config();
+const { Pool } = require('pg');
 const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const pg = require('pg');
 
-const USERS_FILE = path.join(__dirname, '..', 'users.json');
+async function importFromDump() {
+  const dumpPath = require('path').join(__dirname, '..', 'render_dump.json');
+  if (!fs.existsSync(dumpPath)) return { error: 'dump file not found' };
 
-async function main() {
-  if (!process.env.DATABASE_URL) {
-    console.error('DATABASE_URL não definida no .env');
-    process.exit(1);
-  }
+  const dump = JSON.parse(fs.readFileSync(dumpPath, 'utf8'));
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
 
-  const pgClient = new pg.Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
-  await pgClient.connect();
-  await pgClient.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      cpf TEXT PRIMARY KEY,
-      nome TEXT,
-      email TEXT,
-      chave_pix TEXT,
-      password TEXT,
-      balance NUMERIC DEFAULT 10,
-      session_token TEXT,
-      admin BOOLEAN DEFAULT FALSE
-    );
-  `);
-  await pgClient.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS admin BOOLEAN DEFAULT FALSE`).catch(() => {});
-
-  let arr = [];
   try {
-    arr = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-  } catch (e) {
-    console.error('Falha ao ler users.json:', e.message);
-    process.exit(1);
-  }
+    await pool.query(`CREATE TABLE IF NOT EXISTS users (
+      cpf TEXT PRIMARY KEY, nome TEXT, email TEXT, chave_pix TEXT,
+      password TEXT, balance NUMERIC DEFAULT 10, session_token TEXT,
+      admin BOOLEAN DEFAULT FALSE, bonus NUMERIC DEFAULT 0, deposito NUMERIC DEFAULT 0
+    )`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS saques (
+      id TEXT PRIMARY KEY, cpf TEXT, nome TEXT, valor NUMERIC, pix TEXT,
+      status TEXT, created_at BIGINT
+    )`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS depositos (
+      id TEXT PRIMARY KEY, cpf TEXT, nome TEXT, valor NUMERIC, pix TEXT,
+      status TEXT, order_nsu TEXT, created_at BIGINT
+    )`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS historico (
+      id TEXT PRIMARY KEY, sorteio INTEGER, fase TEXT, prize NUMERIC,
+      vencedores JSONB, created_at BIGINT
+    )`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value NUMERIC)`);
 
-  let inseridos = 0;
-  for (const u of arr) {
-    const cpf = String(u.cpf || '').replace(/\D/g, '');
-    if (!cpf) continue;
-    const nome = u.nome || 'Jogador';
-    const email = u.email || '';
-    const chavePix = u.chavePix || '';
-    const password = u.password || crypto.createHash('sha256').update('').digest('hex');
-    const balance = Number(u.balance) || 0;
-    const sessionToken = u.sessionToken || null;
-    const admin = !!u.admin;
-    try {
-      await pgClient.query(
-        `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-         ON CONFLICT (cpf) DO NOTHING`,
-        [cpf, nome, email, chavePix, password, balance, sessionToken, admin]
+    let count = 0;
+    for (const u of dump.users || []) {
+      await pool.query(
+        `INSERT INTO users (cpf, nome, email, chave_pix, password, balance, session_token, admin, bonus, deposito)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (cpf) DO NOTHING`,
+        [u.cpf, u.nome, u.email, u.chave_pix, u.password, u.balance, u.session_token,
+         !!u.admin, Number(u.bonus||0), Number(u.deposito||0)]
       );
-      inseridos++;
-    } catch (e) {
-      console.error('Erro ao inserir', cpf, e.message);
+      count++;
     }
-  }
 
-  const res = await pgClient.query('SELECT COUNT(*)::int AS total FROM users');
-  console.log('Inseridos (novos):', inseridos);
-  console.log('Total de usuarios no PG:', res.rows[0].total);
-  await pgClient.end();
+    for (const s of dump.saques || []) {
+      await pool.query(
+        `INSERT INTO saques (id, cpf, nome, valor, pix, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (id) DO NOTHING`,
+        [s.id, s.cpf, s.nome, s.valor, s.pix, s.status, s.created_at]
+      );
+    }
+
+    for (const d of dump.depositos || []) {
+      await pool.query(
+        `INSERT INTO depositos (id, cpf, nome, valor, pix, status, order_nsu, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (id) DO NOTHING`,
+        [d.id, d.cpf, d.nome, d.valor, d.pix, d.status, d.order_nsu, d.created_at]
+      );
+    }
+
+    for (const h of dump.historico || []) {
+      await pool.query(
+        `INSERT INTO historico (id, sorteio, fase, prize, vencedores, created_at) VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING`,
+        [h.id, h.sorteio, h.fase, h.prize, JSON.stringify(h.vencedores || []), h.created_at]
+      );
+    }
+
+    if (dump.house > 0) {
+      await pool.query(`INSERT INTO meta (key, value) VALUES ('house', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, [dump.house]);
+    }
+
+    pool.end();
+    return { ok: true, users: count, saques: (dump.saques||[]).length, historico: (dump.historico||[]).length };
+  } catch(e) { pool.end(); return { error: e.message }; }
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+module.exports = { importFromDump };

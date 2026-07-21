@@ -552,6 +552,17 @@ if (process.env.TEST) {
   });
 }
 
+// ===== Rota temporária para importar dados do Render =====
+app.post('/api/_migrate_render', async (req, res) => {
+  try {
+    const { secret } = req.body || {};
+    if (secret !== process.env.MIGRATE_SECRET) return res.status(401).json({ error: 'unauthorized' });
+    const m = require('./scripts/migrate');
+    const result = await m.importFromDump();
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 socket.init(server);
 
 // Inicia a primeira rodada após carregar os usuários (PostgreSQL ou arquivo).
